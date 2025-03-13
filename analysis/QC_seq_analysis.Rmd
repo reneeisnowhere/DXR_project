@@ -1,0 +1,99 @@
+---
+title: "sequencing QC"
+author: "Renee Matthews"
+date: "2025-03-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE,
+			dev = c("png","pdf")
+	
+)
+```
+
+```{css, echo=FALSE}
+pre {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+pre[class] {
+  max-height: 200px;
+}
+```
+
+##### Loading Packages
+
+```{r package loading}
+library(tidyverse)
+library(readr)
+```
+
+### data loading
+
+```{r data loading}
+
+sampleinfo <- read_delim("data/sampleinfo.txt", delim = "\t")
+
+multiqc_gene_stats_notrim <- read_delim("data/multiqc_genral_stats_notrim.txt",delim = "\t")
+
+multiqc_fastqc_notrim <- read_delim("data/multiqc_fastqc_notrim.txt",delim = "\t")
+    
+```
+
+Combining the dataframes for visualization
+
+```{r datacombine}
+combo_notrim_df <- multiqc_fastqc_notrim %>% 
+ extract(., Sample, into = c("prefix","read"), regex= "(.+)_R(\\d+)", remove=FALSE) %>% 
+  mutate(read = paste0("R", read)) %>% 
+  left_join(., sampleinfo, by =c("prefix"="library_ID")) %>% 
+  left_join(., multiqc_gene_stats_notrim, by = c("Sample" = "Sample")) %>% 
+  mutate(ind=factor(ind, levels = c("1","2","3","4","5"))) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","5FU","DOX"))) %>% 
+  mutate(other_time=factor(other_time, levels=c("24t","24r","144r")))
+
+```
+
+Visualization of counts
+
+```{r counts viz, fig.height=8, fig.width=8}
+
+combo_notrim_df %>% 
+  ggplot(., aes(x = histone_mark, y= `FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
+  geom_boxplot(aes(fill=histone_mark)) + 
+    geom_point(aes(color=ind))+
+  facet_wrap(trt~other_time)+
+  ylab("percent duplication")+
+  theme(axis.text.x=element_text(angle=90))
+  ylab("percent duplication")
+
+combo_notrim_df %>% 
+  ggplot(., aes(x = histone_mark, y= `FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
+  geom_boxplot(aes(fill=histone_mark)) + 
+   geom_point(aes(color=ind))+
+  facet_wrap(trt~ind)+
+  ylab("percent duplication")+
+  theme(axis.text.x=element_text(angle=90))
+
+combo_notrim_df %>% 
+  ggplot(., aes(x = interaction(other_time,trt), y= `FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
+  geom_boxplot(aes(fill=histone_mark)) + 
+  geom_point(aes(color=ind))+
+facet_wrap(~histone_mark)+
+  ylab("percent duplication")+
+  theme(axis.text.x=element_text(angle=90))
+```
+
+
+```{r}
+
+
+
+# dataframe <- data.frame(sample=c("1","2","3"),percent=c(36,38,67))
+```
+
