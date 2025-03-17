@@ -15,4 +15,5 @@ editor_options:
 
 Want to see the fastqc output?  try this:
 
-[fastqc trimmed]()
+[fastqc trimmed NOT WORKING]()
+
