@@ -8,4 +8,11 @@ editor_options:
   chunk_output_type: console
 ---
 
-Welcome to my research website.
+## Welcome to the QC page for 5FU
+
+### QC analysis  
+####[click here for qc](https://reneeisnowhere.github.io/5FU_project/QC_seq_analysis.html)
+
+Want to see the fastqc output?  try this:
+
+[fastqc trimmed]()
