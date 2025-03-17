@@ -31,6 +31,7 @@ pre[class] {
 ```{r package loading}
 library(tidyverse)
 library(readr)
+library(kableExtra)
 ```
 
 ### data loading
@@ -40,8 +41,10 @@ library(readr)
 sampleinfo <- read_delim("data/sampleinfo.txt", delim = "\t")
 
 multiqc_gene_stats_notrim <- read_delim("data/multiqc_genral_stats_notrim.txt",delim = "\t")
+multiqc_gene_stats_trim <- read_delim("data/multiqc_genral_stats_trim.txt",delim = "\t")
 
 multiqc_fastqc_notrim <- read_delim("data/multiqc_fastqc_notrim.txt",delim = "\t")
+multiqc_fastqc_trim <- read_delim("data/multiqc_fastqc_trim.txt",delim = "\t")
     
 ```
 
@@ -57,12 +60,73 @@ combo_notrim_df <- multiqc_fastqc_notrim %>%
   mutate(trt=factor(trt, levels = c("VEH","5FU","DOX"))) %>% 
   mutate(other_time=factor(other_time, levels=c("24t","24r","144r")))
 
+combo_trim_df <- multiqc_fastqc_trim %>% 
+ extract(., Sample, into = c("prefix","read"), regex= "(.+)_R(\\d+)", remove=FALSE) %>% 
+  mutate(read = paste0("R", read)) %>% 
+  left_join(., sampleinfo, by =c("prefix"="library_ID")) %>% 
+  left_join(., multiqc_gene_stats_trim, by = c("Sample" = "Sample")) %>% 
+  mutate(ind=factor(ind, levels = c("1","2","3","4","5"))) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","5FU","DOX"))) %>% 
+  mutate(other_time=factor(other_time, levels=c("24t","24r","144r")))
 ```
+
+Basic Statsc
+
+```{r Basic stats}
+combo_notrim_df %>% 
+  dplyr::filter(read=="R1") %>% 
+  group_by(trt,other_time,histone_mark) %>% 
+  tally() %>% 
+  ggplot(., aes(x = other_time, y= n))+
+  geom_col(position="dodge",aes(fill=trt)) + 
+  facet_wrap(~histone_mark)+
+  theme(axis.text.x=element_text(angle=90))+
+  ylab("number of samples")+
+  ggtitle("Breakdown of samples by mark and trt-time")
+
+combo_notrim_df %>% 
+  dplyr::filter(read=="R1") %>% 
+  group_by(trt,other_time,histone_mark) %>% 
+  tally() %>% 
+  pivot_wider(., id_cols=c(trt,other_time), names_from = histone_mark, values_from = n) %>% 
+  kable(.,caption = ("Sample counts")) %>% 
+  kable_paper("striped", full_width = FALSE) %>%
+  kable_styling(full_width = FALSE,font_size = 16) %>%
+  scroll_box(width = "100%", height = "500px")
+
+```
+
 
 Visualization of counts
 
-```{r counts viz, fig.height=8, fig.width=8}
+```{r counts viz, fig.height=8, fig.width=12}
 
+combo_notrim_df %>% 
+  dplyr::filter(read=="R1") %>% 
+  ggplot(., aes(x = Sample, y= `Total Sequences`))+
+  geom_col(aes(fill=histone_mark)) + 
+    # geom_point(aes(color=ind))+
+  # facet_wrap(~histone_mark)+
+  ylab("Total sequences")+
+  theme(axis.text.x=element_text(angle=90))+
+  ylab("count")+
+  ggtitle("Read counts by sample and histone mark")
+
+
+combo_notrim_df %>% 
+  dplyr::filter(read=="R1") %>% 
+   ggplot(., aes(x = histone_mark, y= `Total Sequences`))+
+geom_boxplot(aes(fill=histone_mark)) + 
+    geom_point(aes(color=ind))+
+  facet_wrap(trt~other_time)+
+  ylab("count")+
+  theme(axis.text.x=element_text(angle=90))+
+  ggtitle("Sequence count by trt and time")
+
+```
+
+Duplication information
+```{r dup viz, fig.height=8, fig.width=8}
 combo_notrim_df %>% 
   ggplot(., aes(x = histone_mark, y= `FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
   geom_boxplot(aes(fill=histone_mark)) + 
