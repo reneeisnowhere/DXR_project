@@ -515,13 +515,13 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrong1cbf9d2">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrong43341c0">
 <span class="glyphicon glyphicon-ok text-success"
-aria-hidden="true"></span> <strong>Repository version:</strong> 1cbf9d2
+aria-hidden="true"></span> <strong>Repository version:</strong> 43341c0
 </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrong1cbf9d2"
+<div id="strongRepositoryversionstrong43341c0"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -530,7 +530,7 @@ and connecting the code version to the results is critical for
 reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version 1cbf9d2.
+The results in this page were generated with repository version 43341c0.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -555,10 +555,8 @@ Ignored files:
     Ignored:    data/sampleinfo.txt
 
 Untracked files:
-    Untracked:  multiqc_genral_stats_trim.txt
-
-Unstaged changes:
-    Modified:   5FU_project.Rproj
+    Untracked:  multiqc_report_no_cut.html
+    Untracked:  multiqc_report_trim.html
 
 </code></pre>
 <p>
@@ -603,6 +601,23 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+html
+</td>
+<td>
+614b3c8
+</td>
+<td>
+E. Renee Matthews
+</td>
+<td>
+2025-03-17
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -716,6 +731,43 @@ combo_trim_df &lt;- multiqc_fastqc_trim %&gt;%
   ylab(&quot;number of samples&quot;)+
   ggtitle(&quot;Breakdown of samples by mark and trt-time&quot;)</code></pre>
 <p><img src="figure/QC_seq_analysis.Rmd/Basic%20stats-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-Basic-stats-1">
+Past versions of "Basic stats-1.png"
+</button>
+</p>
+<div id="fig-no-spaces-Basic-stats-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+614b3c8
+</td>
+<td>
+E. Renee Matthews
+</td>
+<td>
+2025-03-17
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>combo_notrim_df %&gt;% 
   dplyr::filter(read==&quot;R1&quot;) %&gt;% 
   group_by(trt,other_time,histone_mark) %&gt;% 
@@ -973,6 +1025,17 @@ Date
 <tbody>
 <tr>
 <td>
+614b3c8
+</td>
+<td>
+E. Renee Matthews
+</td>
+<td>
+2025-03-17
+</td>
+</tr>
+<tr>
+<td>
 aaa7046
 </td>
 <td>
@@ -1020,6 +1083,17 @@ Date
 <tbody>
 <tr>
 <td>
+614b3c8
+</td>
+<td>
+E. Renee Matthews
+</td>
+<td>
+2025-03-17
+</td>
+</tr>
+<tr>
+<td>
 aaa7046
 </td>
 <td>
@@ -1042,6 +1116,43 @@ E. Renee Matthews
   ylab(&quot;percent duplication&quot;)+
   theme(axis.text.x=element_text(angle=90))</code></pre>
 <p><img src="figure/QC_seq_analysis.Rmd/dup%20viz-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-dup-viz-1">
+Past versions of "dup viz-1.png"
+</button>
+</p>
+<div id="fig-no-spaces-dup-viz-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+614b3c8
+</td>
+<td>
+E. Renee Matthews
+</td>
+<td>
+2025-03-17
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>  ylab(&quot;percent duplication&quot;)</code></pre>
 <pre><code>$y
 [1] &quot;percent duplication&quot;
@@ -1056,6 +1167,43 @@ attr(,&quot;class&quot;)
   ylab(&quot;percent duplication&quot;)+
   theme(axis.text.x=element_text(angle=90))</code></pre>
 <p><img src="figure/QC_seq_analysis.Rmd/dup%20viz-2.png" width="768" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-dup-viz-2">
+Past versions of "dup viz-2.png"
+</button>
+</p>
+<div id="fig-no-spaces-dup-viz-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+614b3c8
+</td>
+<td>
+E. Renee Matthews
+</td>
+<td>
+2025-03-17
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>combo_notrim_df %&gt;% 
   ggplot(., aes(x = interaction(other_time,trt), y= `FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
   geom_boxplot(aes(fill=histone_mark)) + 
@@ -1064,6 +1212,43 @@ facet_wrap(~histone_mark)+
   ylab(&quot;percent duplication&quot;)+
   theme(axis.text.x=element_text(angle=90))</code></pre>
 <p><img src="figure/QC_seq_analysis.Rmd/dup%20viz-3.png" width="768" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-dup-viz-3">
+Past versions of "dup viz-3.png"
+</button>
+</p>
+<div id="fig-no-spaces-dup-viz-3" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+614b3c8
+</td>
+<td>
+E. Renee Matthews
+</td>
+<td>
+2025-03-17
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code># dataframe &lt;- data.frame(sample=c(&quot;1&quot;,&quot;2&quot;,&quot;3&quot;),percent=c(36,38,67))</code></pre>
 <br>
 <p>
