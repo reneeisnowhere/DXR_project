@@ -13,7 +13,12 @@ editor_options:
 ### QC analysis  
 #### [click here for qc](https://reneeisnowhere.github.io/5FU_project/QC_seq_analysis.html)
 
+
+
+
+
+
 Want to see the fastqc output?  try this:
 
-[fastqc trimmed NOT WORKING]()
+[ NOT WORKING]()
 
