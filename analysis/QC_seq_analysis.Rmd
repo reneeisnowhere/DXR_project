@@ -32,6 +32,7 @@ pre[class] {
 library(tidyverse)
 library(readr)
 library(kableExtra)
+library(DT)
 ```
 
 ### data loading
@@ -39,6 +40,10 @@ library(kableExtra)
 ```{r data loading}
 
 sampleinfo <- read_delim("data/sampleinfo.txt", delim = "\t")
+
+# sampleinfo %>%
+#   mutate(other_time = if_else(time=="24+24","24r",other_time))
+  # write_delim(sampleinfo,"data/sampleinfo.txt", delim = "\t")
 
 multiqc_gene_stats_notrim <- read_delim("data/multiqc_genral_stats_notrim.txt",delim = "\t")
 multiqc_gene_stats_trim <- read_delim("data/multiqc_genral_stats_trim.txt",delim = "\t")
@@ -70,7 +75,7 @@ combo_trim_df <- multiqc_fastqc_trim %>%
   mutate(other_time=factor(other_time, levels=c("24t","24r","144r")))
 ```
 
-Basic Statsc
+### Basic Stats
 
 ```{r Basic stats}
 combo_notrim_df %>% 
@@ -97,7 +102,7 @@ combo_notrim_df %>%
 ```
 
 
-Visualization of counts
+### Visualization of counts
 
 ```{r counts viz, fig.height=8, fig.width=12}
 
@@ -105,12 +110,10 @@ combo_notrim_df %>%
   dplyr::filter(read=="R1") %>% 
   ggplot(., aes(x = Sample, y= `Total Sequences`))+
   geom_col(aes(fill=histone_mark)) + 
-    # geom_point(aes(color=ind))+
-  # facet_wrap(~histone_mark)+
-  ylab("Total sequences")+
-  theme(axis.text.x=element_text(angle=90))+
-  ylab("count")+
-  ggtitle("Read counts by sample and histone mark")
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ylab("sequene count")+
+  ggtitle("Read counts by sample and histone mark")+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
 
 
 combo_notrim_df %>% 
@@ -120,10 +123,65 @@ geom_boxplot(aes(fill=histone_mark)) +
     geom_point(aes(color=ind))+
   facet_wrap(trt~other_time)+
   ylab("count")+
-  theme(axis.text.x=element_text(angle=90))+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
   ggtitle("Sequence count by trt and time")
 
 ```
+
+### Trim information
+
+```{r trim info1}
+combo_trim_df %>% 
+   ggplot(., aes(x = read, y= avg_sequence_length))+
+geom_boxplot(aes(fill=read))
+
+combo_trim_df %>% 
+  ggplot(., aes(x = read, y= avg_sequence_length))+
+geom_boxplot(aes(fill=histone_mark)) +
+  ggtitle("Boxplot of trim read length across histone marks")
+
+combo_trim_df %>% 
+  datatable(., options = list(scrollX = TRUE, 
+                              scrollY = "400px",
+                              scrollCollapse = TRUE,
+                              fixedColumns = list(leftColumns =2),
+                              fixedHeader= TRUE),
+            extensions = c("FixedColumns","Scroller"),
+            class = "display")
+
+combo_trim_df %>% 
+  dplyr::select(prefix,histone_mark,sample_ID:other_time,`Total Sequences`) %>% 
+  distinct() %>% 
+  mutate(File_name=paste0(prefix,".bed"))
+
+
+```
+
+
+```{r trim info2,fig.height=8, fig.width=12}
+combo_trim_df %>% 
+  dplyr::filter(read=="R1") %>% 
+  ggplot(., aes(x = Sample, y= avg_sequence_length))+
+geom_col(aes(fill=histone_mark)) +
+  geom_hline( yintercept = 75)+
+  theme_classic()+
+  ggtitle("Boxplot of average read length across  R1 samples")+ theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+
+combo_trim_df %>% 
+  dplyr::filter(read=="R2") %>% 
+  ggplot(., aes(x = Sample, y= avg_sequence_length))+
+geom_col(aes(fill=histone_mark)) +
+  geom_hline( yintercept = 75)+
+  theme_classic()+
+  ggtitle("Boxplot of average read length across  R2 samples")+ theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+  
+
+
+```
+
+
 
 Duplication information
 ```{r dup viz, fig.height=8, fig.width=8}
@@ -151,6 +209,9 @@ combo_notrim_df %>%
 facet_wrap(~histone_mark)+
   ylab("percent duplication")+
   theme(axis.text.x=element_text(angle=90))
+
+
+  
 ```
 
 
