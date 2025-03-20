@@ -115,6 +115,16 @@ combo_notrim_df %>%
   ggtitle("Read counts by sample and histone mark")+
   scale_y_continuous( expand = expansion(mult = c(0, .1)))
 
+combo_trim_df %>% 
+  dplyr::filter(read=="R1") %>% 
+  ggplot(., aes(x = Sample, y= `Total Sequences`))+
+  geom_col(aes(fill=histone_mark)) + 
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ylab("sequene count")+
+  ggtitle("Read counts by sample and histone mark trimmed adapters")+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+
+
 
 combo_notrim_df %>% 
   dplyr::filter(read=="R1") %>% 
@@ -124,7 +134,18 @@ geom_boxplot(aes(fill=histone_mark)) +
   facet_wrap(trt~other_time)+
   ylab("count")+
   theme(axis.text.x=element_text(vjust = .2,angle=90))+
-  ggtitle("Sequence count by trt and time")
+  ggtitle("Sequence count by trt and time no trim")
+
+combo_trim_df %>% 
+  dplyr::filter(read=="R1") %>% 
+   ggplot(., aes(x = histone_mark, y= `Total Sequences`))+
+geom_boxplot(aes(fill=histone_mark)) + 
+    geom_point(aes(color=ind))+
+  facet_wrap(trt~other_time)+
+  ylab("count")+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ggtitle("Sequence count by trt and time trimmed adapter")
+
 
 ```
 
@@ -149,10 +170,10 @@ combo_trim_df %>%
             extensions = c("FixedColumns","Scroller"),
             class = "display")
 
-combo_trim_df %>% 
-  dplyr::select(prefix,histone_mark,sample_ID:other_time,`Total Sequences`) %>% 
-  distinct() %>% 
-  mutate(File_name=paste0(prefix,".bed"))
+# combo_trim_df %>% 
+#   dplyr::select(prefix,histone_mark,sample_ID:other_time,`Total Sequences`) %>% 
+#   distinct() %>% 
+#   mutate(File_name=paste0(prefix,".bed"))
 
 
 ```
@@ -165,7 +186,7 @@ combo_trim_df %>%
 geom_col(aes(fill=histone_mark)) +
   geom_hline( yintercept = 75)+
   theme_classic()+
-  ggtitle("Boxplot of average read length across  R1 samples")+ theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ggtitle("Graph of average read length across R1 samples")+ theme(axis.text.x=element_text(vjust = .2,angle=90))+
   scale_y_continuous( expand = expansion(mult = c(0, .1)))
 
 combo_trim_df %>% 
@@ -174,51 +195,155 @@ combo_trim_df %>%
 geom_col(aes(fill=histone_mark)) +
   geom_hline( yintercept = 75)+
   theme_classic()+
-  ggtitle("Boxplot of average read length across  R2 samples")+ theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ggtitle("Graph of average read length across R2 samples")+ theme(axis.text.x=element_text(vjust = .2,angle=90))+
   scale_y_continuous( expand = expansion(mult = c(0, .1)))
   
 
 
 ```
 
+percent gc
+
+```{r GCper,fig.height=6, fig.width=12}
+combo_notrim_df %>% 
+  dplyr::filter(read=="R1") %>% 
+  ggplot(., aes(x = Sample, y= `%GC`))+
+  geom_col(aes(fill=histone_mark)) +
+  theme_classic()+
+  ggtitle("Graph of %GC for R1 not-trimmed")+ 
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+
+
+combo_trim_df %>% 
+  dplyr::filter(read=="R1") %>% 
+  ggplot(., aes(x = Sample, y= `%GC`))+
+  geom_col(aes(fill=histone_mark)) +
+  theme_classic()+
+  ggtitle("Graph of %GC for R1 trimmed")+ 
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+
+combo_notrim_df %>% 
+  dplyr::filter(read=="R2") %>% 
+  ggplot(., aes(x = Sample, y= `%GC`))+
+  geom_col(aes(fill=histone_mark)) +
+  theme_classic()+
+  ggtitle("Graph of %GC for R2 not-trimmed")+ 
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+
+
+combo_trim_df %>% 
+  dplyr::filter(read=="R2") %>% 
+  ggplot(., aes(x = Sample, y= `%GC`))+
+  geom_col(aes(fill=histone_mark)) +
+  theme_classic()+
+  ggtitle("Graph of %GC for R2 trimmed")+ 
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+
+
+```
 
 
 Duplication information
 ```{r dup viz, fig.height=8, fig.width=8}
 combo_notrim_df %>% 
+  dplyr::filter(read=="R1") %>% 
   ggplot(., aes(x = histone_mark, y= `FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
   geom_boxplot(aes(fill=histone_mark)) + 
     geom_point(aes(color=ind))+
   facet_wrap(trt~other_time)+
   ylab("percent duplication")+
-  theme(axis.text.x=element_text(angle=90))
-  ylab("percent duplication")
+  theme(axis.text.x=element_text(angle=90))+
+   ggtitle("Duplication percentage (R1 no trim)")
+
+combo_trim_df %>% 
+  dplyr::filter(read=="R1") %>% 
+  ggplot(., aes(x = histone_mark, y= `FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
+  geom_boxplot(aes(fill=histone_mark)) + 
+    geom_point(aes(color=ind))+
+  facet_wrap(trt~other_time)+
+  ylab("percent duplication")+
+  theme(axis.text.x=element_text(angle=90))+
+  ggtitle("Duplication percentage (R1 trimmed)")
+  
 
 combo_notrim_df %>% 
+  dplyr::filter(read=="R1") %>% 
   ggplot(., aes(x = histone_mark, y= `FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
   geom_boxplot(aes(fill=histone_mark)) + 
    geom_point(aes(color=ind))+
   facet_wrap(trt~ind)+
   ylab("percent duplication")+
-  theme(axis.text.x=element_text(angle=90))
+  theme(axis.text.x=element_text(angle=90))+
+  ggtitle("Duplication percentage (R1 no trim)")
 
 combo_notrim_df %>% 
+  dplyr::filter(read=="R1") %>% 
   ggplot(., aes(x = interaction(other_time,trt), y= `FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
   geom_boxplot(aes(fill=histone_mark)) + 
   geom_point(aes(color=ind))+
 facet_wrap(~histone_mark)+
   ylab("percent duplication")+
-  theme(axis.text.x=element_text(angle=90))
+  theme(axis.text.x=element_text(angle=90))+
+  ggtitle("Duplication percentage (R1 no trim)")
+
+combo_trim_df %>% 
+  dplyr::filter(read=="R1") %>% 
+  ggplot(., aes(x = interaction(other_time,trt), y= `FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
+  geom_boxplot(aes(fill=histone_mark)) + 
+  geom_point(aes(color=ind))+
+facet_wrap(~histone_mark)+
+  ylab("percent duplication")+
+  theme(axis.text.x=element_text(angle=90))+
+  ggtitle("Duplication percentage (R1 trimmmed)")
 
 
   
 ```
 
 
-```{r}
+```{r,Dup all samp,fig.height=6, fig.width=12}
+combo_notrim_df %>% 
+  dplyr::filter(read=="R1") %>% 
+  ggplot(., aes(x = Sample, y= `FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
+  geom_col(aes(fill=histone_mark)) +
+  theme_classic()+
+  ggtitle("Graph of percent duplicates for R1 not-trimmed")+ 
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous(limits = c(0,100), expand = expansion(mult = c(0, .1)))
 
 
+combo_trim_df %>% 
+  dplyr::filter(read=="R1") %>% 
+  ggplot(., aes(x = Sample, y= `FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
+  geom_col(aes(fill=histone_mark)) +
+  theme_classic()+
+  ggtitle("Graph of percent duplicates for R1 trimmed")+ 
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous( limits = c(0,100),expand = expansion(mult = c(0, .1)))
 
-# dataframe <- data.frame(sample=c("1","2","3"),percent=c(36,38,67))
+combo_notrim_df %>% 
+  dplyr::filter(read=="R2") %>% 
+  ggplot(., aes(x = Sample, y= `FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
+  geom_col(aes(fill=histone_mark)) +
+  theme_classic()+
+  ggtitle("Graph of percent duplicates for R2 not-trimmed")+ 
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous(limits = c(0,100), expand = expansion(mult = c(0, .1)))
+
+
+combo_trim_df %>% 
+  dplyr::filter(read=="R2") %>% 
+  ggplot(., aes(x = Sample, y= `FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
+  geom_col(aes(fill=histone_mark)) +
+  theme_classic()+
+  ggtitle("Graph of percent duplicates for R2 trimmed")+ 
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous(limits = c(0,100), expand = expansion(mult = c(0, .1)))
+
+
 ```
 
