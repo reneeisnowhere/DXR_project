@@ -290,11 +290,14 @@ combo_trim_df %>%
 facet_wrap(~histone_mark)+
   ylab("percent duplication")+
   theme(axis.text.x=element_text(angle=90))+
-  ggtitle("Duplication percentage (R1 trimmmed)")
+  ggtitle("Duplication percentage (R1 trimmed)")
 
 
   
 ```
+
+
+
 
 
 ```{r,Dup all samp,fig.height=6, fig.width=12}
@@ -343,21 +346,23 @@ combo_trim_df %>%
 ### creating the sample info file from bowtie2 metrics from the first run:
 
 ### import files
-metric_1 <-  read_delim("C:/Users/renee/Documents/Ward Lab/5FU_project/Sample_info/first_run_metrics/Samples_1-69_info.txt", 
+
+metric_1 <-  read_delim("C:/Users/reneels/Documents/Ward Lab/5FU_project/Sample_info/first_run_metrics/metric_1.txt", 
     delim = "\t", escape_double = FALSE, 
     col_names = FALSE, trim_ws = TRUE)
 metric_2 <- read_delim("C:/Users/renee/Documents/Ward Lab/5FU_project/Sample_info/first_run_metrics/Second_set_info.txt", delim = "\t", escape_double = FALSE, col_names = FALSE, trim_ws = TRUE)
 pull_name_file <- read_csv("C:/Users/renee/Documents/Ward Lab/5FU_project/Sample_info/first_run_metrics/samplesheet.txt", col_names = FALSE)
 pull <- pull_name_file[65:94,]
 
- fun <- cbind(pull, metric_2)
+ fun <- cbind(pull, metric_2[,1:8])
+ colnames(fun) <- c("X1","X2","X3","X4","X5","X6","X7","X8","X9")
  
- almost_fun <- cbind(pull_name_file[1:65,],metric_1)
+ # almost_fun <- cbind(pull_name_file[1:65,],metric_1)
  
  ##remove 229 from almost_fun
-subset_almost_fun <- almost_fun[1:64,]
+# subset_almost_fun <- almost_fun[1:64,]
 
-alignment_specs <- rbind(subset_almost_fun,fun)
+alignment_specs <- rbind(metric_1,fun)
 
 colnames(alignment_specs) <- c("sample_ID",
                 "Paired_Reads",
@@ -366,16 +371,67 @@ colnames(alignment_specs) <- c("sample_ID",
                 "zero",
                 "aligned_concordant_1",
                 "one",
-                "aligned_cocordant_>1",
+                "aligned_concordant_g1",
                 "percent_alignment",
                 "N_A")
+colnames(fun) <- c("sample_ID",
+                "Paired_Reads",
+                "aligned_pairs",
+                "aligned_concordant_0",
+                "zero",
+                "aligned_concordant_1",
+                "one",
+                "aligned_concordant_g1",
+                "percent_alignment",
+                "N_A")
+saveRDS(fun, "data/first_run_alignment_229andover.RDS")
 saveRDS(alignment_specs, "data/first_run_alignment_specs.RDS")
 
 ```
 ```{r alignmentspec}
 
-alignment_specs<-readRDS("data/first_run_alignment_specs.RDS")
-alignment_specs %>% 
-  left_join(.,sampleinfo, by=c("sample_ID"="library_ID"))
+alignment_temp<-readRDS("data/first_run_alignment_specs.RDS")
+for_plots <- alignment_temp %>% 
+  left_join(.,sampleinfo, by=c("sample_ID"="library_ID"))%>% 
+  dplyr::select(sample_ID:aligned_concordant_0,aligned_concordant_1, aligned_concordant_g1,percent_alignment, histone_mark,ind, trt,other_time) %>% 
+  distinct()
+```
+
+alignment pair numbers
+```{r,fig.height=6, fig.width=12}
+for_plots %>% 
+  group_by(histone_mark) %>% 
+  ggplot(., aes(x=sample_ID, y=Paired_Reads))+
+    geom_col(aes(fill = histone_mark)) +
+  theme_classic()+
+  ggtitle("Graph of total paired reads")+ 
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+
+for_plots %>% 
+  mutate(percent_alignment=parse_number(percent_alignment)) %>% 
+  group_by(histone_mark) %>% 
+  ggplot(., aes(x=sample_ID, y=percent_alignment))+
+    geom_col(aes(fill = histone_mark)) +
+  theme_classic()+
+  ggtitle("Percent aligned of paired reads") + 
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous(expand = expansion(mult = c(0, .1)))+
+  coord_cartesian(ylim=c(80,100))
+
+
+for_plots %>% 
+  group_by(histone_mark) %>% 
+   mutate(percent_aligned_unique = round(aligned_concordant_1 / Paired_Reads * 100, 2)) %>% 
+  ggplot(., aes(x=sample_ID, y=percent_aligned_unique))+
+    geom_col(aes(fill = histone_mark)) +
+  theme_classic()+
+  ggtitle("Percentage of paired reads aligning once")+ 
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+```
+
+```{r}
+
 ```
 
