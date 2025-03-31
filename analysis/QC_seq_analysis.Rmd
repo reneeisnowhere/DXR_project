@@ -430,8 +430,70 @@ for_plots %>%
   theme(axis.text.x=element_text(vjust = .2,angle=90))+
   scale_y_continuous( expand = expansion(mult = c(0, .1)))
 ```
-
+### Fragment analysis
 ```{r}
+file_list <- list.files(path="C:/Users/renee/Documents/5FU_files/metric_files",
+           pattern ="frag_len_count\\.txt$",full.names = TRUE)
+read_and_label <- function(file) {
+  df <- read_delim(file, delim = "\t", col_names = c("Col1", "Col2"))  # Adjust delimiter if needed
+  df <- df %>%
+    mutate(File = basename(file))  # Add filename column
+  return(df)
+}
+combined_df <- map_df(file_list, read_and_label)
 
+annotated_combo_df <- combined_df %>% 
+  mutate(sample = gsub("_frag_len_count.txt","",File)) %>% 
+  left_join(., sampleinfo, by = c("sample"="library_ID"))
+```
+
+```{r, fig.width=15}
+annotated_combo_df %>% 
+  dplyr::filter(histone_mark=="H3K9me3") %>% 
+  ggplot(., aes(x=Col1, y=Col2, color = sample))+
+  geom_line(size=1)+
+  # geom_point(size=2,alpha =0.7)+
+  scale_x_continuous(breaks = seq(0, max(annotated_combo_df$Col1), by = 50))+
+  labs(title = "Fragment length, H3K9me3",
+       x = "Fragment Length (bp)",
+       y = "Count",
+       color= "Sample")+
+  theme_minimal()
+
+annotated_combo_df %>% 
+  dplyr::filter(histone_mark=="H3K27me3") %>% 
+  ggplot(., aes(x=Col1, y=Col2, color = sample))+
+  geom_line(size=1)+
+  # geom_point(size=2,alpha =0.7)+
+  scale_x_continuous(breaks = seq(0, max(annotated_combo_df$Col1), by = 50))+
+  labs(title = "Fragment length, H3K27me3",
+       x = "Fragment Length (bp)",
+       y = "Count",
+       color= "Sample")+
+  theme_minimal()
+
+annotated_combo_df %>% 
+  dplyr::filter(histone_mark=="H3K27ac") %>% 
+  ggplot(., aes(x=Col1, y=Col2, color = sample))+
+  geom_line(size=1)+
+  # geom_point(size=2,alpha =0.7)+
+  scale_x_continuous(breaks = seq(0, max(annotated_combo_df$Col1), by = 50))+
+  labs(title = "Fragment length, H3K27ac",
+       x = "Fragment Length (bp)",
+       y = "Count",
+       color= "Sample")+
+  theme_minimal()
+
+annotated_combo_df %>% 
+  dplyr::filter(histone_mark=="H3K36me3") %>% 
+  ggplot(., aes(x=Col1, y=Col2, color = sample))+
+  geom_line(size=1)+
+  # geom_point(size=2,alpha =0.7)+
+  scale_x_continuous(breaks = seq(0, max(annotated_combo_df$Col1), by = 50))+
+  labs(title = "Fragment length, H3K36me3",
+       x = "Fragment Length (bp)",
+       y = "Count",
+       color= "Sample")+
+  theme_minimal()
 ```
 
