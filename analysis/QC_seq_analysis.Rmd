@@ -34,6 +34,9 @@ library(readr)
 library(kableExtra)
 library(DT)
 library(readr)
+library(edgeR)
+library(ComplexHeatmap)
+library(data.table)
 ```
 
 ### data loading
@@ -42,10 +45,6 @@ library(readr)
 
 sampleinfo <- read_delim("data/sampleinfo.txt", delim = "\t")
 
-# sampleinfo %>%
-#   mutate(other_time = if_else(time=="24+24","24r",other_time))
-  # write_delim(sampleinfo,"data/sampleinfo.txt", delim = "\t")
-
 multiqc_gene_stats_notrim <- read_delim("data/multiqc_genral_stats_notrim.txt",delim = "\t")
 multiqc_gene_stats_trim <- read_delim("data/multiqc_genral_stats_trim.txt",delim = "\t")
 
@@ -53,8 +52,90 @@ multiqc_fastqc_notrim <- read_delim("data/multiqc_fastqc_notrim.txt",delim = "\t
 multiqc_fastqc_trim <- read_delim("data/multiqc_fastqc_trim.txt",delim = "\t")
     
 ```
+###### functions
 
-Combining the dataframes for visualization
+```{r}
+drug_pal <- c("#8B006D","#DF707E","#F1B72B", "#3386DD","#707031","#41B333")
+pca_plot <-
+  function(df,
+           col_var = NULL,
+           shape_var = NULL,
+           title = "") {
+    ggplot(df) + geom_point(aes_string(
+      x = "PC1",
+      y = "PC2",
+      color = col_var,
+      shape = shape_var
+    ),
+    size = 5) +
+      labs(title = title, x = "PC 1", y = "PC 2") +
+      scale_color_manual(values = c(
+        "#8B006D",
+        "#DF707E",
+        "#F1B72B",
+        "#3386DD",
+        "#707031",
+        "#41B333"
+      ))
+  }
+pca_var_plot <- function(pca) {
+  # x: class == prcomp
+  pca.var <- pca$sdev ^ 2
+  pca.prop <- pca.var / sum(pca.var)
+  var.plot <-
+    qplot(PC, prop, data = data.frame(PC = 1:length(pca.prop),
+                                      prop = pca.prop)) +
+    labs(title = 'Variance contributed by each PC',
+         x = 'PC', y = 'Proportion of variance')
+  plot(var.plot)
+}
+
+calc_pca <- function(x) {
+  # Performs principal components analysis with prcomp
+  # x: a sample-by-gene numeric matrix
+  prcomp(x, scale. = TRUE, retx = TRUE)
+}
+
+get_regr_pval <- function(mod) {
+  # Returns the p-value for the Fstatistic of a linear model
+  # mod: class lm
+  stopifnot(class(mod) == "lm")
+  fstat <- summary(mod)$fstatistic
+  pval <- 1 - pf(fstat[1], fstat[2], fstat[3])
+  return(pval)
+}
+
+plot_versus_pc <- function(df, pc_num, fac) {
+  # df: data.frame
+  # pc_num: numeric, specific PC for plotting
+  # fac: column name of df for plotting against PC
+  pc_char <- paste0("PC", pc_num)
+  # Calculate F-statistic p-value for linear model
+  pval <- get_regr_pval(lm(df[, pc_char] ~ df[, fac]))
+  if (is.numeric(df[, f])) {
+    ggplot(df, aes_string(x = f, y = pc_char)) + geom_point() +
+      geom_smooth(method = "lm") + labs(title = sprintf("p-val: %.2f", pval))
+  } else {
+    ggplot(df, aes_string(x = f, y = pc_char)) + geom_boxplot() +
+      labs(title = sprintf("p-val: %.2f", pval))
+  }
+}
+x_axis_labels = function(labels, every_nth = 1, ...) {
+  axis(side = 1,
+       at = seq_along(labels),
+       labels = F)
+  text(
+    x = (seq_along(labels))[seq_len(every_nth) == 1],
+    y = par("usr")[3] - 0.075 * (par("usr")[4] - par("usr")[3]),
+    labels = labels[seq_len(every_nth) == 1],
+    xpd = TRUE,
+    ...
+  )
+}
+
+```
+
+######## Combining the dataframes for visualization
 
 ```{r datacombine}
 combo_notrim_df <- multiqc_fastqc_notrim %>% 
@@ -454,6 +535,7 @@ annotated_combo_df %>%
   geom_line(size=1)+
   # geom_point(size=2,alpha =0.7)+
   scale_x_continuous(breaks = seq(0, max(annotated_combo_df$Col1), by = 50))+
+   facet_wrap(~sample)+
   labs(title = "Fragment length, H3K9me3",
        x = "Fragment Length (bp)",
        y = "Count",
@@ -466,6 +548,7 @@ annotated_combo_df %>%
   geom_line(size=1)+
   # geom_point(size=2,alpha =0.7)+
   scale_x_continuous(breaks = seq(0, max(annotated_combo_df$Col1), by = 50))+
+   facet_wrap(~sample)+
   labs(title = "Fragment length, H3K27me3",
        x = "Fragment Length (bp)",
        y = "Count",
@@ -478,6 +561,7 @@ annotated_combo_df %>%
   geom_line(size=1)+
   # geom_point(size=2,alpha =0.7)+
   scale_x_continuous(breaks = seq(0, max(annotated_combo_df$Col1), by = 50))+
+   facet_wrap(~sample)+
   labs(title = "Fragment length, H3K27ac",
        x = "Fragment Length (bp)",
        y = "Count",
@@ -490,10 +574,386 @@ annotated_combo_df %>%
   geom_line(size=1)+
   # geom_point(size=2,alpha =0.7)+
   scale_x_continuous(breaks = seq(0, max(annotated_combo_df$Col1), by = 50))+
+  facet_wrap(~sample)+
   labs(title = "Fragment length, H3K36me3",
        x = "Fragment Length (bp)",
        y = "Count",
        color= "Sample")+
   theme_minimal()
+```
+#### Peak count across files
+
+```{r peakcount}
+peak_count_H3K27ac <- read_table("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/macs2_output/H3K27ac_peak_count.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_peaks.narrowPeak","",X2)) %>% 
+    mutate(histone="H3K27ac")
+
+peak_count_H3K27me3 <- read_table("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/macs2_output/H3K27me3_peak_count.txt", 
+    col_names = FALSE)%>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_peaks.broadPeak","",X2)) %>% 
+   dplyr::filter(X2 != "H3K27me3_all") %>% 
+  mutate(histone="H3K27me3")
+
+
+peak_count_H3K9me3 <- read_table("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/macs2_output/H3K9me3_peak_count.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_peaks.narrowPeak","",X2)) %>% 
+    mutate(histone="H3K9me3")
+
+
+
+peak_count_H3K36me3 <- read_table("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/macs2_output/H3K36me3_peak_count.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+  mutate(X2=gsub("_peaks.broadPeak","",X2)) %>% 
+   dplyr::filter(X2 != "H3K36me3_all") %>% 
+  mutate(histone="H3K36me3")
+ 
+
+
+All_peak_count <- rbind(peak_count_H3K27ac,peak_count_H3K27me3,peak_count_H3K9me3,peak_count_H3K36me3)
+
+All_peak_count %>% 
+   ggplot(.,aes(x=X2, y=X1,fill=histone))+
+   geom_col()+
+   ylab("Count")+
+   theme_classic()+
+  # facet_wrap(~histone)+
+  ggtitle("Peak number for all samples")+ 
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+
+All_peak_count %>% 
+  ggplot(., aes (x=histone, y = X1, fill = histone))+
+  geom_boxplot()+
+   ylab("Count")+
+   theme_classic()+
+  # facet_wrap(~histone)+
+  ggtitle("Peak count across histones")
+
+All_peak_count %>% 
+  left_join(sampleinfo, by = c("X2"="library_ID", "histone"="histone_mark")) %>% 
+  ggplot(., aes (x=trt, y = X1, fill = histone))+
+  geom_boxplot()+
+   ylab("Count")+
+   theme_classic()+
+  # facet_wrap(~histone)+
+  ggtitle("Peak count across histones by trt")
+
+All_peak_count %>% 
+  left_join(sampleinfo, by = c("X2"="library_ID", "histone"="histone_mark")) %>% 
+  ggplot(., aes (x=other_time, y = X1, fill = histone))+
+  geom_boxplot()+
+   ylab("Count")+
+   theme_classic()+
+  # facet_wrap(~histone)+
+  ggtitle("Peak count across histones by time")
+
+
+```
+
+### H3K27ac analysis
+
+```{r H3K27ac counts}
+count_H3K27ac <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/count_H3K27ac.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+
+Fragment_H3K27ac_txt <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/count_H3K27ac.txt.summary", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE)
+rename_list <- sampleinfo %>% 
+  mutate(stem= "_final.bam") %>% 
+  mutate(oldname=paste0(library_ID,stem)) %>% 
+  mutate(newname=paste0(ind,"_",trt,"_",other_time,"_",histone_mark)) %>% 
+  dplyr::select(oldname,newname)
+  
+rename_vec <- setNames(rename_list$newname, rename_list$oldname)
+
+names(count_H3K27ac)[names(count_H3K27ac) %in% names(rename_vec)] <- rename_vec[names(count_H3K27ac)[names(count_H3K27ac) %in% names(rename_vec)]]
+
+
+```
+
+
+```{r, fig.width=10, fig.height=7}
+H3K27ac_counts_raw <- count_H3K27ac %>% 
+  dplyr::select(Geneid,`3_VEH_24r_H3K27ac`:`3_DOX_24r_H3K27ac`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+
+
+first_H3K27ac_counts_cor <- count_H3K27ac %>% 
+  dplyr::select(Geneid,`3_VEH_24r_H3K27ac`:`3_DOX_24r_H3K27ac`) %>% 
+  column_to_rownames("Geneid") %>% 
+  cpm(., log = TRUE) %>% 
+  cor()
+
+annomat <- data.frame(sample=colnames(first_H3K27ac_counts_cor)) %>% 
+  separate_wider_delim(sample,delim="_",names=c("ind","trt","time",NA),cols_remove = FALSE) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","5FU","DOX")),
+         time=factor(time, levels =c("24t","24r","144r"))) %>% 
+  column_to_rownames("sample")
+heatmap_first <- ComplexHeatmap::HeatmapAnnotation(df = annomat)
+
+Heatmap(first_H3K27ac_counts_cor, 
+        top_annotation = heatmap_first,
+        column_title="Unfiltered log2cpm H3K27ac")
+```
+
+### H3K27me3 analysis
+
+
+```{r H3k27me3 import}
+count_H3K27me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/H3K27me3_counts.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+
+
+Fragment_H3K27me3_txt <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/H3K27me3_counts.txt.summary", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE)
+rename_list <- sampleinfo %>% 
+  mutate(stem= "_final.bam") %>% 
+  mutate(oldname=paste0(library_ID,stem)) %>% 
+  mutate(newname=paste0(ind,"_",trt,"_",other_time,"_",histone_mark)) %>% 
+  dplyr::select(oldname,newname)
+  
+rename_vec <- setNames(rename_list$newname, rename_list$oldname)
+
+names(count_H3K27me3)[names(count_H3K27me3) %in% names(rename_vec)] <- rename_vec[names(count_H3K27me3)[names(count_H3K27me3) %in% names(rename_vec)]]
+
+
+```
+
+
+
+```{r H3K27me3 heatmap,fig.width=10, fig.height=7}
+H3K27me3_counts_raw <- count_H3K27me3 %>% 
+  dplyr::select(Geneid,`1_VEH_24t_H3K27me3`:`5_VEH_24r_H3K27me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+
+
+first_H3K27me3_counts_cor <- count_H3K27me3 %>% 
+  dplyr::select(Geneid,`1_VEH_24t_H3K27me3`:`5_VEH_24r_H3K27me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  cpm(., log = TRUE) %>% 
+  cor()
+
+annomat_H3K27me3 <- data.frame(sample=colnames(first_H3K27me3_counts_cor)) %>% 
+  separate_wider_delim(sample,delim="_",names=c("ind","trt","time",NA),cols_remove = FALSE) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","5FU","DOX")),
+         time=factor(time, levels =c("24t","24r","144r"))) %>% 
+  column_to_rownames("sample")
+heatmap_first_H3K27me3 <- ComplexHeatmap::HeatmapAnnotation(df = annomat_H3K27me3)
+
+Heatmap(first_H3K27me3_counts_cor, 
+        top_annotation = heatmap_first_H3K27me3,
+        column_title="Unfiltered log2cpm H3K27me3")
+```
+
+
+
+
+
+
+### H3K9me3 analysis
+
+```{r}
+count_H3K9me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/H3K9me3_counts.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+
+
+Fragment_H3K9me3_txt <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/H3K9me3_counts.txt.summary", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE)
+rename_list <- sampleinfo %>% 
+  mutate(stem= "_final.bam") %>% 
+  mutate(oldname=paste0(library_ID,stem)) %>% 
+  mutate(newname=paste0(ind,"_",trt,"_",other_time,"_",histone_mark)) %>% 
+  dplyr::select(oldname,newname)
+  
+rename_vec <- setNames(rename_list$newname, rename_list$oldname)
+
+names(count_H3K9me3)[names(count_H3K9me3) %in% names(rename_vec)] <- rename_vec[names(count_H3K9me3)[names(count_H3K9me3) %in% names(rename_vec)]]
+
+
+```
+
+
+
+
+```{r H3K9me3 heatmap,fig.width=10, fig.height=7}
+H3K9me3_counts_raw <- count_H3K9me3 %>% 
+  dplyr::select(Geneid,`1_DOX_24t_H3K9me3`:`5_5FU_144r_H3K9me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+
+
+first_H3K9me3_counts_cor <- count_H3K9me3 %>% 
+  dplyr::select(Geneid,`1_DOX_24t_H3K9me3`:`5_5FU_144r_H3K9me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  cpm(., log = TRUE) %>% 
+  cor()
+
+annomat_H3K9me3 <- data.frame(sample=colnames(first_H3K9me3_counts_cor)) %>% 
+  separate_wider_delim(sample,delim="_",names=c("ind","trt","time",NA),cols_remove = FALSE) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","5FU","DOX")),
+         time=factor(time, levels =c("24t","24r","144r"))) %>% 
+  column_to_rownames("sample")
+heatmap_first_H3K9me3 <- ComplexHeatmap::HeatmapAnnotation(df = annomat_H3K9me3)
+
+Heatmap(first_H3K9me3_counts_cor, 
+        top_annotation = heatmap_first_H3K9me3,
+        column_title="Unfiltered log2cpm H3K9me3")
+```
+
+
+
+
+### H3K36me3 analysis
+
+```{r}
+count_H3K36me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/H3K36me3_counts.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+
+
+Fragment_H3K36me3_txt <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/H3K36me3_counts.txt.summary", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE)
+rename_list <- sampleinfo %>% 
+  mutate(stem= "_final.bam") %>% 
+  mutate(oldname=paste0(library_ID,stem)) %>% 
+  mutate(newname=paste0(ind,"_",trt,"_",other_time,"_",histone_mark)) %>% 
+  dplyr::select(oldname,newname)
+  
+rename_vec <- setNames(rename_list$newname, rename_list$oldname)
+
+names(count_H3K36me3)[names(count_H3K36me3) %in% names(rename_vec)] <- rename_vec[names(count_H3K36me3)[names(count_H3K36me3) %in% names(rename_vec)]]
+
+
+```
+
+
+
+
+```{r H3K36me3 heatmap,fig.width=10, fig.height=7}
+H3K36me3_counts_raw <- count_H3K36me3 %>% 
+  dplyr::select(Geneid,`1_5FU_24t_H3K36me3`:`5_VEH_144r_H3K36me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+
+
+first_H3K36me3_counts_cor <- count_H3K36me3 %>% 
+  dplyr::select(Geneid,`1_5FU_24t_H3K36me3`:`5_VEH_144r_H3K36me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  cpm(., log = TRUE) %>% 
+  cor()
+
+annomat_H3K36me3 <- data.frame(sample=colnames(first_H3K36me3_counts_cor)) %>% 
+  separate_wider_delim(sample,delim="_",names=c("ind","trt","time",NA),cols_remove = FALSE) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","5FU","DOX")),
+         time=factor(time, levels =c("24t","24r","144r"))) %>% 
+  column_to_rownames("sample")
+heatmap_first_H3K36me3 <- ComplexHeatmap::HeatmapAnnotation(df = annomat_H3K36me3)
+
+Heatmap(first_H3K36me3_counts_cor, 
+        top_annotation = heatmap_first_H3K36me3,
+        column_title="Unfiltered log2cpm H3K36me3")
+```
+
+
+
+#### Fragment Width
+
+```{r Frag width}
+histone_list <- c("H3K27ac","H3K27me3","H3K9me3","H3K36me3")
+base_path <- "C:/Users/renee/Other_projects_data/5FU_data/prelim-data"
+
+# get_peak_widths <- function(histone_name, base_path) {
+#   path <- file.path(base_path, histone_name, "macs2_output")
+#   
+#   file_list <- list.files(path = path, pattern = "\\.narrowPeak$", full.names = TRUE)
+#   
+#   peak_list <- map(file_list, ~ {
+#     fread(.x, header = FALSE) %>%
+#       transmute(width = abs(V3 - V2))
+#   })
+# 
+#   names(peak_list) <- paste0(histone_name, "_", tools::file_path_sans_ext(basename(file_list)))
+# 
+#   peak_widths <- bind_cols(peak_list)
+# 
+#   return(peak_widths)
+# }
+# all_widths_list <- map(histone_list, ~ get_peak_widths(.x, base_path))
+#   
+```
+
+
+```{r}
+histone_list <- c("H3K27ac","H3K27me3","H3K9me3","H3K36me3")
+base_path <- "C:/Users/renee/Other_projects_data/5FU_data/prelim-data"
+
+get_peak_widths_long <- function(histone_name, base_path) {
+  path <- file.path(base_path, histone_name, "macs2_output")
+  
+  file_list <- list.files(path = path, pattern = "\\.(narrowPeak|broadPeak)$", full.names = TRUE)
+   # Exclude files with 'all_peaks' in the name
+  file_list <- file_list[!grepl("all_peaks", basename(file_list))]
+
+  
+  peak_list <- purrr::map(file_list, function(file_path) {
+    filename <- basename(file_path)
+    fread(file_path, header = FALSE) %>%
+      transmute(
+        row = row_number(),
+        width = abs(V3 - V2),
+        file = paste0(histone_name, "-", filename)
+      )
+    return(peak_df)
+  })
+  
+  dplyr::bind_rows(peak_list)
+}
+
+```
+
+```{r fragment visulization}
+
+all_peaks_long <- map_dfr(histone_list, ~ get_peak_widths_long(.x, base_path))
+
+anno_peak_width_long <- all_peaks_long %>% 
+  mutate(file= gsub("_peaks.narrowPeak","",file)) %>% 
+  separate_wider_delim(., cols=file, delim="-",names=c("histone","sample")) %>% 
+  left_join(sampleinfo, by =c("sample"="library_ID"))
+
+```
+
+```{r}
+anno_peak_width_long %>%
+  # distinct(histone)
+  ggplot(.,aes(x=histone, y = width, fill = histone))+
+  geom_violin()+
+  # scale_fill_viridis_a(discrete = TRUE, begin = 0.1, end = 0.55, option = "magma", alpha = 0.8) +
+  #   scale_color_viridis_a(discrete = TRUE, begin = 0.1, end = 0.9) +
+    scale_y_continuous(trans = "log", breaks = c(400, 3000, 22000)) +
+    theme_bw(base_size = 18) +
+    ylab("Width of Peaks") +
+    xlab("")
+```
+  The smaller fragment bits, specifically in H3K26 and K3k9me3 made me realize something was up.  After visualizing the top ranked peaks in some of the peak files by sample, I became aware of chrM contamination.  Below this mark is me trying to remap/and filter out the non-standard chromosomes.
+  
+  Code I used to check top peaks on files: 
+```{bash echo=TRUE, eval=FALSE}
+sort -k5,5rn MCW_CT_ROA_215_peaks.narrowPeak | head -n 30
+
 ```
 
