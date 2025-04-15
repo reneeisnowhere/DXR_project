@@ -521,15 +521,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomreneeisnowhere5FUprojecttreeeb35929a2c8113e1760487cf3139e00a0a43f487targetblankeb35929a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomreneeisnowhere5FUprojecttree5d4f2fa89fe0131480473dd9f3813eaa8305a18atargetblank5d4f2faa">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/reneeisnowhere/5FU_project/tree/eb35929a2c8113e1760487cf3139e00a0a43f487" target="_blank">eb35929</a>
+<a href="https://github.com/reneeisnowhere/5FU_project/tree/5d4f2fa89fe0131480473dd9f3813eaa8305a18a" target="_blank">5d4f2fa</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomreneeisnowhere5FUprojecttreeeb35929a2c8113e1760487cf3139e00a0a43f487targetblankeb35929a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomreneeisnowhere5FUprojecttree5d4f2fa89fe0131480473dd9f3813eaa8305a18atargetblank5d4f2faa"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -539,7 +539,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/reneeisnowhere/5FU_project/tree/eb35929a2c8113e1760487cf3139e00a0a43f487" target="_blank">eb35929</a>.
+<a href="https://github.com/reneeisnowhere/5FU_project/tree/5d4f2fa89fe0131480473dd9f3813eaa8305a18a" target="_blank">5d4f2fa</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -566,7 +566,6 @@ Ignored files:
     Ignored:    data/sampleinfo.txt
 
 Untracked files:
-    Untracked:  analysis/first_all_hist_peaks.Rmd
     Untracked:  multiqc_report_no_cut.html
     Untracked:  multiqc_report_trim.html
 
@@ -618,6 +617,40 @@ Message
 Rmd
 </td>
 <td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/5d4f2fa89fe0131480473dd9f3813eaa8305a18a/analysis/initial_pca_analysis.Rmd" target="_blank">5d4f2fa</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+<td>
+updates to PC1 % etc
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/reneeisnowhere/5FU_project/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/initial_pca_analysis.html" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
 <a href="https://github.com/reneeisnowhere/5FU_project/blob/eb35929a2c8113e1760487cf3139e00a0a43f487/analysis/initial_pca_analysis.Rmd" target="_blank">eb35929</a>
 </td>
 <td>
@@ -656,7 +689,24 @@ library(DT)
 library(readr)
 library(edgeR)
 library(ComplexHeatmap)
-library(genomation)</code></pre>
+library(genomation)
+library(data.table)</code></pre>
+<div id="prop-var-function" class="section level6">
+<h6>prop var function</h6>
+<pre class="r"><code>prop_var_percent &lt;- function(pca_result){ 
+  # Ensure the input is a PCA result object
+  if (!inherits(pca_result, &quot;prcomp&quot;)) {
+    stop(&quot;Input must be a result from prcomp()&quot;)
+  }
+  
+  # Get the standard deviations from the PCA result
+  sdev &lt;- pca_result$sdev
+  
+  # Calculate the proportion of variance
+  proportion_variance &lt;- (sdev^2) / sum(sdev^2)*100
+  
+  return(proportion_variance)
+}</code></pre>
 <pre class="r"><code>sampleinfo &lt;- read_delim(&quot;data/sampleinfo.txt&quot;, delim = &quot;\t&quot;)
 
 count_H3K27ac &lt;- read_delim(&quot;C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/count_H3K27ac.txt&quot;, 
@@ -800,6 +850,7 @@ H3K27ac_masterpeak %&gt;%
 <p>yes, the peaks calls are contaminated in H3K9me3 and H3K36me3… I am
 going to filter the bamfiles and redo peak calling.</p>
 </div>
+</div>
 <div id="before-and-after-filtering-for-h3k27ac" class="section level2">
 <h2>before and after filtering for H3K27ac</h2>
 <pre class="r"><code>lcpm_K27ac_rm &lt;- cpm(H3K27ac_counts_raw, log = TRUE)
@@ -830,6 +881,43 @@ lcpm_K27ac_rm %&gt;%
   ggtitle(&quot;Log2 cpm before filtering&quot;)+
   theme_bw()</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K27ac%20bNa%20filtering-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K27ac-bNa-filtering-1">
+Past versions of "H3K27ac bNa filtering-1.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K27ac-bNa-filtering-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K27ac bNa filtering-1.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>K27ac_filt_lcpm %&gt;%
   as.data.frame() %&gt;% 
   rownames_to_column(&quot;region&quot;) %&gt;% 
@@ -839,6 +927,43 @@ lcpm_K27ac_rm %&gt;%
   ggtitle(&quot;Log2 cpm after filtering&quot;)+
   theme_bw()</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K27ac%20bNa%20filtering-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K27ac-bNa-filtering-2">
+Past versions of "H3K27ac bNa filtering-2.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K27ac-bNa-filtering-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K27ac bNa filtering-2.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>lcpm_K27ac_rm_noM &lt;- cpm(H3K27ac_noM_counts_raw, log = TRUE)
 K27ac_rm_noM &lt;- rowMeans(lcpm_K27ac_rm_noM)
 K27ac_filt_raw_noM &lt;- H3K27ac_noM_counts_raw[K27ac_rm_noM&gt;0,]
@@ -867,6 +992,43 @@ lcpm_K27ac_rm_noM %&gt;%
   ggtitle(&quot;Log2 cpm before filtering without Mitochondrial reads&quot;)+
   theme_bw()</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/_noM%20H3K27ac%20bNa%20filtering-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-_noM-H3K27ac-bNa-filtering-1">
+Past versions of "_noM H3K27ac bNa filtering-1.png"
+</button>
+</p>
+<div id="fig-no-spaces-_noM-H3K27ac-bNa-filtering-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/_noM H3K27ac bNa filtering-1.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>K27ac_filt_lcpm_noM %&gt;%
   as.data.frame() %&gt;% 
   rownames_to_column(&quot;region&quot;) %&gt;% 
@@ -876,35 +1038,229 @@ lcpm_K27ac_rm_noM %&gt;%
   ggtitle(&quot;Log2 cpm after filtering without Mitochondrial reads&quot;)+
   theme_bw()</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/_noM%20H3K27ac%20bNa%20filtering-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-_noM-H3K27ac-bNa-filtering-2">
+Past versions of "_noM H3K27ac bNa filtering-2.png"
+</button>
+</p>
+<div id="fig-no-spaces-_noM-H3K27ac-bNa-filtering-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/_noM H3K27ac bNa filtering-2.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<pre class="r"><code>K27ac_unfilt_noM_percent &lt;- prop_var_percent(pca_K27ac_unfilt_noM)
+K27ac_filt_noM_percent &lt;- prop_var_percent(pca_K27ac_filt_noM)
+
+K27ac_unfilt_percent &lt;- prop_var_percent(pca_K27ac_unfilt)
+K27ac_filt_percent &lt;- prop_var_percent(pca_K27ac_filt)</code></pre>
 <pre class="r"><code>anno_pca_K27ac_unfilt %&gt;% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle(&quot;H3K27ac unfiltered log2cpm&quot;)</code></pre>
+  ggtitle(&quot;H3K27ac unfiltered log2cpm&quot;)+
+  labs(x = sprintf(&quot;%.2f %% PC1&quot;, K27ac_unfilt_percent[1]), y=sprintf(&quot;%.2f %% PC2&quot;,K27ac_unfilt_percent[2]))</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K27ac%20pca%20plot-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K27ac-pca-plot-1">
+Past versions of "H3K27ac pca plot-1.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K27ac-pca-plot-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K27ac pca plot-1.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>anno_pca_K27ac_filt %&gt;% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle(&quot;H3K27ac filtered log2cpm&quot;)</code></pre>
+  ggtitle(&quot;H3K27ac filtered log2cpm&quot;)+
+  labs(x = sprintf(&quot;%.2f %% PC1&quot;, K27ac_filt_percent[1]), y=sprintf(&quot;%.2f %% PC2&quot;,K27ac_filt_percent[2]))</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K27ac%20pca%20plot-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K27ac-pca-plot-2">
+Past versions of "H3K27ac pca plot-2.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K27ac-pca-plot-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K27ac pca plot-2.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>####################33333no M############
 anno_pca_K27ac_unfilt_noM %&gt;% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle(&quot;H3K27ac unfiltered log2cpm without mito reads&quot;)</code></pre>
+  ggtitle(&quot;H3K27ac unfiltered log2cpm without mito reads&quot;)+
+  labs(x = sprintf(&quot;%.2f %% PC1&quot;, K27ac_unfilt_noM_percent[1]), y=sprintf(&quot;%.2f %% PC2&quot;,K27ac_unfilt_noM_percent[2]))</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K27ac%20pca%20plot-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K27ac-pca-plot-3">
+Past versions of "H3K27ac pca plot-3.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K27ac-pca-plot-3" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K27ac pca plot-3.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>anno_pca_K27ac_filt_noM %&gt;% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle(&quot;H3K27ac filtered log2cpm without mito reads&quot;)</code></pre>
+  ggtitle(&quot;H3K27ac filtered log2cpm without mito reads&quot;)+
+  labs(x = sprintf(&quot;%.2f %% PC1&quot;, K27ac_filt_noM_percent[1]), y=sprintf(&quot;%.2f %% PC2&quot;,K27ac_filt_noM_percent[2]))</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K27ac%20pca%20plot-4.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K27ac-pca-plot-4">
+Past versions of "H3K27ac pca plot-4.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K27ac-pca-plot-4" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K27ac pca plot-4.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="h3k27me3-before-and-after-filtering" class="section level2">
 <h2>H3K27me3 before and after filtering</h2>
@@ -943,21 +1299,103 @@ pca_K27me3_unfilt_noM &lt;- prcomp(t(lcpm_K27me3_rm_noM), scale. = TRUE)
 pca_K27me3_filt_noM &lt;- prcomp(t(K27me3_filt_lcpm_noM), scale. = TRUE)
 
 anno_pca_K27me3_unfilt_noM &lt;- pca_K27me3_unfilt_noM$x %&gt;% cbind(.,K27me3_anno_mat_noM)
-anno_pca_K27me3_filt_noM &lt;- pca_K27me3_filt_noM$x %&gt;% cbind(.,K27me3_anno_mat_noM)</code></pre>
+anno_pca_K27me3_filt_noM &lt;- pca_K27me3_filt_noM$x %&gt;% cbind(.,K27me3_anno_mat_noM)
+
+K27me3_unfilt_noM_percent &lt;- prop_var_percent(pca_K27me3_unfilt_noM)
+K27me3_filt_noM_percent &lt;- prop_var_percent(pca_K27me3_filt_noM)
+
+K27me3_unfilt_percent &lt;- prop_var_percent(pca_K27me3_unfilt)
+K27me3_filt_percent &lt;- prop_var_percent(pca_K27me3_filt)</code></pre>
 <pre class="r"><code>anno_pca_K27me3_unfilt %&gt;% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle(&quot;H3K27me3 unfiltered log2cpm&quot;)</code></pre>
+  ggtitle(&quot;H3K27me3 unfiltered log2cpm&quot;)+
+  labs(x = sprintf(&quot;%.2f %% PC1&quot;, K27me3_unfilt_percent[1]), y=sprintf(&quot;%.2f %% PC2&quot;,K27me3_unfilt_percent[2]))</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K27me3%20pca%20plot-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K27me3-pca-plot-1">
+Past versions of "H3K27me3 pca plot-1.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K27me3-pca-plot-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K27me3 pca plot-1.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>anno_pca_K27me3_filt %&gt;% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle(&quot;H3K27me3 filtered log2cpm&quot;)</code></pre>
+  ggtitle(&quot;H3K27me3 filtered log2cpm&quot;)+ 
+  labs(x = sprintf(&quot;%.2f %% PC1&quot;, K27me3_filt_percent[1]), y=sprintf(&quot;%.2f %% PC2&quot;,K27me3_filt_percent[2]))</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K27me3%20pca%20plot-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K27me3-pca-plot-2">
+Past versions of "H3K27me3 pca plot-2.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K27me3-pca-plot-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K27me3 pca plot-2.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>###################noM##############
 
 anno_pca_K27me3_unfilt_noM %&gt;% 
@@ -965,15 +1403,91 @@ anno_pca_K27me3_unfilt_noM %&gt;%
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle(&quot;H3K27me3 unfiltered log2cpm without mito reads&quot;)</code></pre>
+  ggtitle(&quot;H3K27me3 unfiltered log2cpm without mito reads&quot;)+ 
+  labs(x = sprintf(&quot;%.2f %% PC1&quot;, K27me3_unfilt_noM_percent[1]), y=sprintf(&quot;%.2f %% PC2&quot;,K27me3_unfilt_noM_percent[2]))</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K27me3%20pca%20plot-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K27me3-pca-plot-3">
+Past versions of "H3K27me3 pca plot-3.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K27me3-pca-plot-3" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K27me3 pca plot-3.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>anno_pca_K27me3_filt_noM %&gt;% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle(&quot;H3K27me3 filtered log2cpm without mito reads&quot;)</code></pre>
+  ggtitle(&quot;H3K27me3 filtered log2cpm without mito reads&quot;)+ 
+  labs(x = sprintf(&quot;%.2f %% PC1&quot;, K27me3_filt_noM_percent[1]), y=sprintf(&quot;%.2f %% PC2&quot;,K27me3_filt_noM_percent[2]))</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K27me3%20pca%20plot-4.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K27me3-pca-plot-4">
+Past versions of "H3K27me3 pca plot-4.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K27me3-pca-plot-4" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K27me3 pca plot-4.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="h3k9me3-before-and-after-filtering" class="section level2">
 <h2>H3K9me3 before and after filtering</h2>
@@ -1012,36 +1526,194 @@ pca_K9me3_unfilt_noM &lt;- prcomp(t(lcpm_K9me3_rm_noM), scale. = TRUE)
 pca_K9me3_filt_noM &lt;- prcomp(t(K9me3_filt_lcpm_noM), scale. = TRUE)
 
 anno_pca_K9me3_unfilt_noM &lt;- pca_K9me3_unfilt_noM$x %&gt;% cbind(.,K9me3_anno_mat_noM)
-anno_pca_K9me3_filt_noM &lt;- pca_K9me3_filt_noM$x %&gt;% cbind(.,K9me3_anno_mat_noM)</code></pre>
+anno_pca_K9me3_filt_noM &lt;- pca_K9me3_filt_noM$x %&gt;% cbind(.,K9me3_anno_mat_noM)
+
+K9me3_unfilt_noM_percent &lt;- prop_var_percent(pca_K9me3_unfilt_noM)
+K9me3_filt_noM_percent &lt;- prop_var_percent(pca_K9me3_filt_noM)
+
+K9me3_unfilt_percent &lt;- prop_var_percent(pca_K9me3_unfilt)
+K9me3_filt_percent &lt;- prop_var_percent(pca_K9me3_filt)</code></pre>
 <pre class="r"><code>anno_pca_K9me3_unfilt %&gt;% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle(&quot;H3K9me3 unfiltered log2cpm&quot;)</code></pre>
+  ggtitle(&quot;H3K9me3 unfiltered log2cpm&quot;)+ 
+  labs(x = sprintf(&quot;%.2f %% PC1&quot;, K9me3_unfilt_percent[1]), y=sprintf(&quot;%.2f %% PC2&quot;,K9me3_unfilt_percent[2]))</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K9me3%20pca%20plot-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K9me3-pca-plot-1">
+Past versions of "H3K9me3 pca plot-1.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K9me3-pca-plot-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K9me3 pca plot-1.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>anno_pca_K9me3_filt %&gt;% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle(&quot;H3K9me3 filtered log2cpm&quot;)</code></pre>
+  ggtitle(&quot;H3K9me3 filtered log2cpm&quot;)+ 
+  labs(x = sprintf(&quot;%.2f %% PC1&quot;, K27ac_filt_percent[1]), y=sprintf(&quot;%.2f %% PC2&quot;,K27ac_filt_percent[2]))</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K9me3%20pca%20plot-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K9me3-pca-plot-2">
+Past versions of "H3K9me3 pca plot-2.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K9me3-pca-plot-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K9me3 pca plot-2.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>#######NO M ###############
 anno_pca_K9me3_unfilt_noM %&gt;% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle(&quot;H3K9me3 unfiltered log2cpm without mito reads&quot;)</code></pre>
+  ggtitle(&quot;H3K9me3 unfiltered log2cpm without mito reads&quot;)+ 
+  labs(x = sprintf(&quot;%.2f %% PC1&quot;, K9me3_unfilt_noM_percent[1]), y=sprintf(&quot;%.2f %% PC2&quot;,K9me3_unfilt_noM_percent[2]))</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K9me3%20pca%20plot-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K9me3-pca-plot-3">
+Past versions of "H3K9me3 pca plot-3.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K9me3-pca-plot-3" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K9me3 pca plot-3.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>anno_pca_K9me3_filt_noM %&gt;% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle(&quot;H3K9me3 filtered log2cpm without mito reads&quot;)</code></pre>
+  ggtitle(&quot;H3K9me3 filtered log2cpm without mito reads&quot;)+ 
+  labs(x = sprintf(&quot;%.2f %% PC1&quot;, K9me3_filt_noM_percent[1]), y=sprintf(&quot;%.2f %% PC2&quot;,K9me3_filt_noM_percent[2]))</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K9me3%20pca%20plot-4.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K9me3-pca-plot-4">
+Past versions of "H3K9me3 pca plot-4.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K9me3-pca-plot-4" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K9me3 pca plot-4.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="h3k36me3-before-and-after-filtering" class="section level2">
 <h2>H3K36me3 before and after filtering</h2>
@@ -1062,9 +1734,7 @@ pca_K36me3_unfilt &lt;- prcomp(t(lcpm_K36me3_rm), scale. = TRUE)
 pca_K36me3_filt &lt;- prcomp(t(K36me3_filt_lcpm), scale. = TRUE)
 
 anno_pca_K36me3_unfilt &lt;- pca_K36me3_unfilt$x %&gt;% cbind(.,K36me3_anno_mat)
-anno_pca_K36me3_filt &lt;- pca_K36me3_filt$x %&gt;% cbind(.,K36me3_anno_mat)
-
-table_test &lt;- summary(pca_K36me3_filt)</code></pre>
+anno_pca_K36me3_filt &lt;- pca_K36me3_filt$x %&gt;% cbind(.,K36me3_anno_mat)</code></pre>
 <pre class="r"><code>lcpm_K36me3_rm_noM &lt;- cpm(H3K36me3_noM_counts_raw, log = TRUE)
 K36me3_rm_noM &lt;- rowMeans(lcpm_K36me3_rm_noM)
 K36me3_filt_raw_noM &lt;- H3K36me3_noM_counts_raw[K36me3_rm_noM&gt;0,]
@@ -1082,21 +1752,103 @@ pca_K36me3_unfilt_noM &lt;- prcomp(t(lcpm_K36me3_rm_noM), scale. = TRUE)
 pca_K36me3_filt_noM &lt;- prcomp(t(K36me3_filt_lcpm_noM), scale. = TRUE)
 
 anno_pca_K36me3_unfilt_noM &lt;- pca_K36me3_unfilt_noM$x %&gt;% cbind(.,K36me3_anno_mat_noM)
-anno_pca_K36me3_filt_noM &lt;- pca_K36me3_filt_noM$x %&gt;% cbind(.,K36me3_anno_mat_noM)</code></pre>
+anno_pca_K36me3_filt_noM &lt;- pca_K36me3_filt_noM$x %&gt;% cbind(.,K36me3_anno_mat_noM)
+
+K36me3_unfilt_noM_percent &lt;- prop_var_percent(pca_K36me3_unfilt_noM)
+K36me3_filt_noM_percent &lt;- prop_var_percent(pca_K36me3_filt_noM)
+
+K36me3_unfilt_percent &lt;- prop_var_percent(pca_K36me3_unfilt)
+K36me3_filt_percent &lt;- prop_var_percent(pca_K36me3_filt)</code></pre>
 <pre class="r"><code>anno_pca_K36me3_unfilt %&gt;% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle(&quot;H3K36me3 unfiltered log2cpm&quot;)</code></pre>
+  ggtitle(&quot;H3K36me3 unfiltered log2cpm&quot;)+ 
+  labs(x = sprintf(&quot;%.2f %% PC1&quot;, K36me3_unfilt_percent[1]), y=sprintf(&quot;%.2f %% PC2&quot;,K36me3_unfilt_percent[2]))</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K36me3%20pca%20plot-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K36me3-pca-plot-1">
+Past versions of "H3K36me3 pca plot-1.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K36me3-pca-plot-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K36me3 pca plot-1.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>anno_pca_K36me3_filt %&gt;% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle(&quot;H3K36me3 filtered log2cpm&quot;)</code></pre>
+  ggtitle(&quot;H3K36me3 filtered log2cpm&quot;)+ 
+  labs(x = sprintf(&quot;%.2f %% PC1&quot;, K36me3_filt_percent[1]), y=sprintf(&quot;%.2f %% PC2&quot;,K36me3_filt_percent[2]))</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K36me3%20pca%20plot-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K36me3-pca-plot-2">
+Past versions of "H3K36me3 pca plot-2.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K36me3-pca-plot-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K36me3 pca plot-2.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>###############noM###################3333
 
 
@@ -1105,16 +1857,95 @@ anno_pca_K36me3_unfilt_noM %&gt;%
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle(&quot;H3K36me3 unfiltered log2cpm without mito reads&quot;)</code></pre>
+  ggtitle(&quot;H3K36me3 unfiltered log2cpm without mito reads&quot;)+ 
+  labs(x = sprintf(&quot;%.2f %% PC1&quot;, K36me3_unfilt_noM_percent[1]), y=sprintf(&quot;%.2f %% PC2&quot;,K36me3_unfilt_noM_percent[2]))</code></pre>
 <p><img src="figure/initial_pca_analysis.Rmd/H3K36me3%20pca%20plot-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K36me3-pca-plot-3">
+Past versions of "H3K36me3 pca plot-3.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K36me3-pca-plot-3" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K36me3 pca plot-3.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>anno_pca_K36me3_filt_noM %&gt;% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle(&quot;H3K36me3 filtered log2cpm without mito reads&quot;)</code></pre>
-<p><img src="figure/initial_pca_analysis.Rmd/H3K36me3%20pca%20plot-4.png" width="672" style="display: block; margin: auto;" />
-## After filtering and recalling peaks: A whole separate folder</p>
+  ggtitle(&quot;H3K36me3 filtered log2cpm without mito reads&quot;)+ 
+  labs(x = sprintf(&quot;%.2f %% PC1&quot;, K36me3_filt_noM_percent[1]), y=sprintf(&quot;%.2f %% PC2&quot;,K36me3_filt_noM_percent[2]))</code></pre>
+<p><img src="figure/initial_pca_analysis.Rmd/H3K36me3%20pca%20plot-4.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-H3K36me3-pca-plot-4">
+Past versions of "H3K36me3 pca plot-4.png"
+</button>
+</p>
+<div id="fig-no-spaces-H3K36me3-pca-plot-4" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/5FU_project/blob/1018a8bf520a2bfb8f8828f70eb14c4ed2668d65/docs/figure/initial_pca_analysis.Rmd/H3K36me3 pca plot-4.png" target="_blank">1018a8b</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="after-filtering-and-recalling-peaks-a-whole-separate-folder"
+class="section level2">
+<h2>After filtering and recalling peaks: A whole separate folder</h2>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -1146,12 +1977,12 @@ attached base packages:
 [8] base     
 
 other attached packages:
- [1] genomation_1.38.0     ComplexHeatmap_2.22.0 edgeR_4.4.2          
- [4] limma_3.62.2          DT_0.33               kableExtra_1.4.0     
- [7] lubridate_1.9.4       forcats_1.0.0         stringr_1.5.1        
-[10] dplyr_1.1.4           purrr_1.0.4           readr_2.1.5          
-[13] tidyr_1.3.1           tibble_3.2.1          ggplot2_3.5.1        
-[16] tidyverse_2.0.0       workflowr_1.7.1      
+ [1] data.table_1.17.0     genomation_1.38.0     ComplexHeatmap_2.22.0
+ [4] edgeR_4.4.2           limma_3.62.2          DT_0.33              
+ [7] kableExtra_1.4.0      lubridate_1.9.4       forcats_1.0.0        
+[10] stringr_1.5.1         dplyr_1.1.4           purrr_1.0.4          
+[13] readr_2.1.5           tidyr_1.3.1           tibble_3.2.1         
+[16] ggplot2_3.5.1         tidyverse_2.0.0       workflowr_1.7.1      
 
 loaded via a namespace (and not attached):
   [1] RColorBrewer_1.1-3          rstudioapi_0.17.1          
@@ -1188,31 +2019,31 @@ loaded via a namespace (and not attached):
  [63] cluster_2.1.8.1             reshape2_1.4.4             
  [65] generics_0.1.3              gtable_0.3.6               
  [67] BSgenome_1.74.0             tzdb_0.4.0                 
- [69] seqPattern_1.38.0           data.table_1.17.0          
- [71] hms_1.1.3                   xml2_1.3.7                 
- [73] utf8_1.2.4                  XVector_0.46.0             
- [75] BiocGenerics_0.52.0         ggrepel_0.9.6              
- [77] foreach_1.5.2               pillar_1.10.1              
- [79] vroom_1.6.5                 later_1.4.1                
- [81] circlize_0.4.16             lattice_0.22-6             
- [83] rtracklayer_1.66.0          bit_4.6.0                  
- [85] tidyselect_1.2.1            locfit_1.5-9.12            
- [87] Biostrings_2.74.1           knitr_1.49                 
- [89] git2r_0.35.0                IRanges_2.40.1             
- [91] SummarizedExperiment_1.36.0 svglite_2.1.3              
- [93] stats4_4.4.2                xfun_0.51                  
- [95] Biobase_2.66.0              statmod_1.5.0              
- [97] matrixStats_1.5.0           stringi_1.8.4              
- [99] UCSC.utils_1.2.0            yaml_2.3.10                
-[101] evaluate_1.0.3              codetools_0.2-20           
-[103] cli_3.6.4                   systemfonts_1.2.1          
-[105] munsell_0.5.1               processx_3.8.6             
-[107] jquerylib_0.1.4             Rcpp_1.0.14                
-[109] GenomeInfoDb_1.42.3         png_0.1-8                  
-[111] XML_3.99-0.18               parallel_4.4.2             
-[113] bitops_1.0-9                viridisLite_0.4.2          
-[115] scales_1.3.0                crayon_1.5.3               
-[117] GetoptLong_1.0.5            rlang_1.1.5                </code></pre>
+ [69] seqPattern_1.38.0           hms_1.1.3                  
+ [71] xml2_1.3.7                  utf8_1.2.4                 
+ [73] XVector_0.46.0              BiocGenerics_0.52.0        
+ [75] ggrepel_0.9.6               foreach_1.5.2              
+ [77] pillar_1.10.1               vroom_1.6.5                
+ [79] later_1.4.1                 circlize_0.4.16            
+ [81] lattice_0.22-6              rtracklayer_1.66.0         
+ [83] bit_4.6.0                   tidyselect_1.2.1           
+ [85] locfit_1.5-9.12             Biostrings_2.74.1          
+ [87] knitr_1.49                  git2r_0.35.0               
+ [89] IRanges_2.40.1              SummarizedExperiment_1.36.0
+ [91] svglite_2.1.3               stats4_4.4.2               
+ [93] xfun_0.51                   Biobase_2.66.0             
+ [95] statmod_1.5.0               matrixStats_1.5.0          
+ [97] stringi_1.8.4               UCSC.utils_1.2.0           
+ [99] yaml_2.3.10                 evaluate_1.0.3             
+[101] codetools_0.2-20            cli_3.6.4                  
+[103] systemfonts_1.2.1           munsell_0.5.1              
+[105] processx_3.8.6              jquerylib_0.1.4            
+[107] Rcpp_1.0.14                 GenomeInfoDb_1.42.3        
+[109] png_0.1-8                   XML_3.99-0.18              
+[111] parallel_4.4.2              bitops_1.0-9               
+[113] viridisLite_0.4.2           scales_1.3.0               
+[115] crayon_1.5.3                GetoptLong_1.0.5           
+[117] rlang_1.1.5                </code></pre>
 </div>
 </div>
 </div>
