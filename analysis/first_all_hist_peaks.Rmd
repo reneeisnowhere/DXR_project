@@ -1,0 +1,130 @@
+---
+title: "All histone peaks"
+author: "Renee Matthews"
+date: "2025-04-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE,
+			dev = c("png","pdf")
+	
+)
+```
+
+```{css, echo=FALSE}
+pre {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+pre[class] {
+  max-height: 200px;
+}
+```
+
+```{r package loading}
+library(tidyverse)
+library(readr)
+library(kableExtra)
+library(DT)
+library(readr)
+library(edgeR)
+library(ComplexHeatmap)
+library(data.table)
+library(genomation)
+library(GenomicRanges)
+```
+### All peaks information
+
+```{r}
+sampleinfo <- read_delim("data/sampleinfo.txt", delim = "\t")
+
+all_hist_peaks <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/all_histone_peak_files/all_hist_counts.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+
+### THis section uses regex to extract the histone and filename from a column title that looks like (../H3K27ac/MCW_CT_ROA_100_noM_final.bam) and returns (H3K27ac_MCW_CT_ROA_100)
+colnames(all_hist_peaks) <- gsub(".*/(H3K[0-9a-zA-Z]+)/((MCW_CT_ROA_[0-9]+)).*","\\1_\\2",colnames(all_hist_peaks))
+```
+
+
+```{r all hist peaks  width fragment}
+
+all_hist_peaks %>% 
+  dplyr::select(Geneid, Length)%>% 
+  mutate(peak="All peaks") %>% 
+  ggplot(., aes (x=Length))+
+  geom_histogram()+
+   theme_bw(base_size = 18) 
+
+all_hist_peaks %>% 
+  dplyr::select(Geneid, Length)%>% 
+  mutate(peak="All peaks") %>% 
+  ggplot(., aes (y=Length,x= peak))+
+  geom_violin()+
+    scale_y_continuous(trans = "log", breaks = c(400,1500, 3000, 22000)) +
+    theme_bw(base_size = 18) +
+    ylab("Width of Peaks") +
+    xlab("")+
+  ggtitle("Master Peak list\nwidths without MT reads")
+
+
+```
+
+```{r histogram of counts}
+  ### here I am selecting the peak name("GENEid" and all file columns (7 to 100) to compute cpm and pivot longer to do histograms of all counts (this part takes awhile, million of rows)
+lcpm_all_hist_peaks <- all_hist_peaks %>% 
+  dplyr::select(Geneid,7:100) %>% 
+  column_to_rownames("Geneid") %>% 
+  cpm(., log=TRUE) %>% 
+  as.data.frame() %>% 
+  rownames_to_column("peak")  
+  
+ long_cpm_dt <- as.data.table(lcpm_all_hist_peaks)
+
+long_pivot_cpm_dt <- melt(long_cpm_dt, id.vars = "peak")
+long_pivot_cpm_dt %>% 
+  as.data.frame() %>% 
+  ggplot(., aes (x=value))+
+  geom_histogram()
+
+
+```
+
+```{r rename columns}
+rename_list <- sampleinfo %>% 
+  mutate(oldname=paste0(histone_mark,"_",library_ID)) %>% 
+  mutate(newname=paste0(ind,"_",trt,"_",other_time,"_",histone_mark)) %>% 
+  dplyr::select(oldname,newname)
+  
+rename_vec <- setNames(rename_list$newname, rename_list$oldname)
+
+names(lcpm_all_hist_peaks)[names(lcpm_all_hist_peaks) %in% names(rename_vec)] <- rename_vec[names(lcpm_all_hist_peaks)[names(lcpm_all_hist_peaks) %in% names(rename_vec)]]
+```
+##### heatmap
+```{r, fig.height=14, fig.width=14}
+first_cor_all_peaks_mat <- lcpm_all_hist_peaks%>% 
+  column_to_rownames("peak") %>% 
+  cor()
+
+annomat_all_peaks <-
+data.frame(sample=colnames(lcpm_all_hist_peaks)) %>%
+  dplyr::filter(sample != "peak") %>% 
+  separate_wider_delim(sample,delim="_",names=c("ind","trt","time","histone"),cols_remove = FALSE) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","5FU","DOX")),
+         time=factor(time, levels =c("24t","24r","144r"))) %>% 
+  column_to_rownames("sample")
+
+heatmap_first_allpeaks <- ComplexHeatmap::HeatmapAnnotation(df = annomat_all_peaks)
+
+ht <- Heatmap(first_cor_all_peaks_mat, 
+        top_annotation = heatmap_first_allpeaks,
+        column_title="Unfiltered log2cpm super peak list")
+
+draw(ht, heatmap_legend_side = "bottom",annotation_legend_side= "bottom")
+```
+
