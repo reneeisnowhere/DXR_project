@@ -37,6 +37,8 @@ library(readr)
 library(edgeR)
 library(ComplexHeatmap)
 library(data.table)
+library(genomation)
+library(GenomicRanges)
 ```
 
 ### data loading
@@ -512,13 +514,14 @@ for_plots %>%
   scale_y_continuous( expand = expansion(mult = c(0, .1)))
 ```
 ### Fragment analysis
-```{r}
+```{r message=FALSE, warning=FALSE}
 file_list <- list.files(path="C:/Users/renee/Documents/5FU_files/metric_files",
            pattern ="frag_len_count\\.txt$",full.names = TRUE)
 read_and_label <- function(file) {
   df <- read_delim(file, delim = "\t", col_names = c("Col1", "Col2"))  # Adjust delimiter if needed
   df <- df %>%
-    mutate(File = basename(file))  # Add filename column
+    mutate(File = basename(file),  # Add filename column
+  weight = Col2/sum(Col2))
   return(df)
 }
 combined_df <- map_df(file_list, read_and_label)
@@ -541,6 +544,16 @@ annotated_combo_df %>%
        y = "Count",
        color= "Sample")+
   theme_minimal()
+annotated_combo_df %>% 
+  dplyr::filter(histone_mark=="H3K9me3") %>%
+  ggplot(., aes(x=sample, y=Col1, weight = weight,fill = histone_mark))+
+geom_violin(bw = 5) +
+    scale_y_continuous(breaks = seq(0, 800, 50)) +
+   theme_bw(base_size = 20) +
+    ggpubr::rotate_x_text(angle = 90) +
+  ggtitle("Fragment lengths for H3K9me3")+
+    ylab("Fragment Length") +
+    xlab("")
 
 annotated_combo_df %>% 
   dplyr::filter(histone_mark=="H3K27me3") %>% 
@@ -554,6 +567,16 @@ annotated_combo_df %>%
        y = "Count",
        color= "Sample")+
   theme_minimal()
+annotated_combo_df %>% 
+  dplyr::filter(histone_mark=="H3K27me3") %>%
+  ggplot(., aes(x=sample, y=Col1, weight = weight,fill = histone_mark))+
+geom_violin(bw = 5) +
+    scale_y_continuous(breaks = seq(0, 800, 50)) +
+   theme_bw(base_size = 20) +
+    ggpubr::rotate_x_text(angle = 90) +
+  ggtitle("Fragment lengths for H3K27me3")+
+    ylab("Fragment Length") +
+    xlab("")
 
 annotated_combo_df %>% 
   dplyr::filter(histone_mark=="H3K27ac") %>% 
@@ -567,7 +590,16 @@ annotated_combo_df %>%
        y = "Count",
        color= "Sample")+
   theme_minimal()
-
+annotated_combo_df %>% 
+  dplyr::filter(histone_mark=="H3K27ac") %>%
+  ggplot(., aes(x=sample, y=Col1, weight = weight,fill = histone_mark))+
+geom_violin(bw = 5) +
+    scale_y_continuous(breaks = seq(0, 800, 50)) +
+   theme_bw(base_size = 20) +
+    ggpubr::rotate_x_text(angle = 90) +
+  ggtitle("Fragment lengths for H3K27ac")+
+    ylab("Fragment Length") +
+    xlab("")
 annotated_combo_df %>% 
   dplyr::filter(histone_mark=="H3K36me3") %>% 
   ggplot(., aes(x=Col1, y=Col2, color = sample))+
@@ -580,10 +612,21 @@ annotated_combo_df %>%
        y = "Count",
        color= "Sample")+
   theme_minimal()
+
+annotated_combo_df %>% 
+  dplyr::filter(histone_mark=="H3K36me3") %>%
+  ggplot(., aes(x=sample, y=Col1, weight = weight,fill = histone_mark))+
+geom_violin(bw = 5) +
+    scale_y_continuous(breaks = seq(0, 800, 50)) +
+   theme_bw(base_size = 20) +
+    ggpubr::rotate_x_text(angle = 90) +
+  ggtitle("Fragment lengths for H3K36me3")+
+    ylab("Fragment Length") +
+    xlab("")
 ```
 #### Peak count across files
 
-```{r peakcount}
+```{r peakcount, fig.width=12}
 peak_count_H3K27ac <- read_table("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/macs2_output/H3K27ac_peak_count.txt", 
     col_names = FALSE) %>% 
   dplyr::filter(X2 != "total") %>% 
@@ -663,7 +706,15 @@ count_H3K27ac <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE, skip = 1)
 
+noM_count_H3K27ac <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/noM_count_H3K27ac", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+
 Fragment_H3K27ac_txt <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/count_H3K27ac.txt.summary", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE)
+
+Fragment_H3K27ac_txt_noM <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/noM_count_H3K27ac.summary", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE)
 rename_list <- sampleinfo %>% 
@@ -671,10 +722,20 @@ rename_list <- sampleinfo %>%
   mutate(oldname=paste0(library_ID,stem)) %>% 
   mutate(newname=paste0(ind,"_",trt,"_",other_time,"_",histone_mark)) %>% 
   dplyr::select(oldname,newname)
+
+noM_rename_list <- sampleinfo %>% 
+  mutate(stem= "_noM_final.bam") %>% 
+  mutate(oldname=paste0(library_ID,stem)) %>% 
+  mutate(newname=paste0(ind,"_",trt,"_",other_time,"_",histone_mark)) %>% 
+  dplyr::select(oldname,newname)
   
 rename_vec <- setNames(rename_list$newname, rename_list$oldname)
 
+rename_vec_noM <- setNames(noM_rename_list$newname, noM_rename_list$oldname)
+
 names(count_H3K27ac)[names(count_H3K27ac) %in% names(rename_vec)] <- rename_vec[names(count_H3K27ac)[names(count_H3K27ac) %in% names(rename_vec)]]
+
+names(noM_count_H3K27ac)[names(noM_count_H3K27ac) %in% names(rename_vec_noM)] <- rename_vec_noM[names(noM_count_H3K27ac)[names(noM_count_H3K27ac) %in% names(rename_vec_noM)]]
 
 
 ```
@@ -685,9 +746,19 @@ H3K27ac_counts_raw <- count_H3K27ac %>%
   dplyr::select(Geneid,`3_VEH_24r_H3K27ac`:`3_DOX_24r_H3K27ac`) %>% 
   column_to_rownames("Geneid") %>% 
   as.matrix()
+H3K27ac_counts_raw_noM <- noM_count_H3K27ac %>% 
+  dplyr::select(Geneid,`3_VEH_24r_H3K27ac`:`3_DOX_24r_H3K27ac`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
 
 
 first_H3K27ac_counts_cor <- count_H3K27ac %>% 
+  dplyr::select(Geneid,`3_VEH_24r_H3K27ac`:`3_DOX_24r_H3K27ac`) %>% 
+  column_to_rownames("Geneid") %>% 
+  cpm(., log = TRUE) %>% 
+  cor()
+
+first_H3K27ac_counts_cor_noM <- noM_count_H3K27ac %>% 
   dplyr::select(Geneid,`3_VEH_24r_H3K27ac`:`3_DOX_24r_H3K27ac`) %>% 
   column_to_rownames("Geneid") %>% 
   cpm(., log = TRUE) %>% 
@@ -703,6 +774,10 @@ heatmap_first <- ComplexHeatmap::HeatmapAnnotation(df = annomat)
 Heatmap(first_H3K27ac_counts_cor, 
         top_annotation = heatmap_first,
         column_title="Unfiltered log2cpm H3K27ac")
+
+Heatmap(first_H3K27ac_counts_cor_noM, 
+        top_annotation = heatmap_first,
+        column_title="Unfiltered log2cpm H3K27ac_noM")
 ```
 
 ### H3K27me3 analysis
@@ -713,8 +788,16 @@ count_H3K27me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE, skip = 1)
 
+noM_count_H3K27me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/noM_count_H3K27me3", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+
 
 Fragment_H3K27me3_txt <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/H3K27me3_counts.txt.summary", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE)
+
+Fragment_H3K27me3_txt_noM <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/noM_count_H3K27me3.summary", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE)
 rename_list <- sampleinfo %>% 
@@ -727,6 +810,8 @@ rename_vec <- setNames(rename_list$newname, rename_list$oldname)
 
 names(count_H3K27me3)[names(count_H3K27me3) %in% names(rename_vec)] <- rename_vec[names(count_H3K27me3)[names(count_H3K27me3) %in% names(rename_vec)]]
 
+names(noM_count_H3K27me3)[names(noM_count_H3K27me3) %in% names(rename_vec_noM)] <- rename_vec_noM[names(noM_count_H3K27me3)[names(noM_count_H3K27me3) %in% names(rename_vec_noM)]]
+
 
 ```
 
@@ -738,8 +823,18 @@ H3K27me3_counts_raw <- count_H3K27me3 %>%
   column_to_rownames("Geneid") %>% 
   as.matrix()
 
+H3K27me3_counts_raw_noM <- noM_count_H3K27me3 %>% 
+  dplyr::select(Geneid,`1_VEH_24t_H3K27me3`:`5_VEH_24r_H3K27me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+
 
 first_H3K27me3_counts_cor <- count_H3K27me3 %>% 
+  dplyr::select(Geneid,`1_VEH_24t_H3K27me3`:`5_VEH_24r_H3K27me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  cpm(., log = TRUE) %>% 
+  cor()
+first_H3K27me3_counts_cor_noM <- noM_count_H3K27me3 %>% 
   dplyr::select(Geneid,`1_VEH_24t_H3K27me3`:`5_VEH_24r_H3K27me3`) %>% 
   column_to_rownames("Geneid") %>% 
   cpm(., log = TRUE) %>% 
@@ -755,6 +850,10 @@ heatmap_first_H3K27me3 <- ComplexHeatmap::HeatmapAnnotation(df = annomat_H3K27me
 Heatmap(first_H3K27me3_counts_cor, 
         top_annotation = heatmap_first_H3K27me3,
         column_title="Unfiltered log2cpm H3K27me3")
+
+Heatmap(first_H3K27me3_counts_cor_noM, 
+        top_annotation = heatmap_first_H3K27me3,
+        column_title="Unfiltered log2cpm H3K27me3 no mitoreads")
 ```
 
 
@@ -769,8 +868,16 @@ count_H3K9me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE, skip = 1)
 
+noM_count_H3K9me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/noM_count_H3K9me3", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+
 
 Fragment_H3K9me3_txt <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/H3K9me3_counts.txt.summary", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE)
+
+Fragment_H3K9me3_txt_noM <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/noM_count_H3K9me3.summary", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE)
 rename_list <- sampleinfo %>% 
@@ -782,7 +889,7 @@ rename_list <- sampleinfo %>%
 rename_vec <- setNames(rename_list$newname, rename_list$oldname)
 
 names(count_H3K9me3)[names(count_H3K9me3) %in% names(rename_vec)] <- rename_vec[names(count_H3K9me3)[names(count_H3K9me3) %in% names(rename_vec)]]
-
+names(noM_count_H3K9me3)[names(noM_count_H3K9me3) %in% names(rename_vec_noM)] <- rename_vec_noM[names(noM_count_H3K9me3)[names(noM_count_H3K9me3) %in% names(rename_vec_noM)]]
 
 ```
 
@@ -795,8 +902,19 @@ H3K9me3_counts_raw <- count_H3K9me3 %>%
   column_to_rownames("Geneid") %>% 
   as.matrix()
 
+H3K9me3_counts_raw <- noM_count_H3K9me3 %>% 
+  dplyr::select(Geneid,`1_DOX_24t_H3K9me3`:`5_5FU_144r_H3K9me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+
+
 
 first_H3K9me3_counts_cor <- count_H3K9me3 %>% 
+  dplyr::select(Geneid,`1_DOX_24t_H3K9me3`:`5_5FU_144r_H3K9me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  cpm(., log = TRUE) %>% 
+  cor()
+first_H3K9me3_counts_cor_noM <- noM_count_H3K9me3 %>% 
   dplyr::select(Geneid,`1_DOX_24t_H3K9me3`:`5_5FU_144r_H3K9me3`) %>% 
   column_to_rownames("Geneid") %>% 
   cpm(., log = TRUE) %>% 
@@ -812,6 +930,11 @@ heatmap_first_H3K9me3 <- ComplexHeatmap::HeatmapAnnotation(df = annomat_H3K9me3)
 Heatmap(first_H3K9me3_counts_cor, 
         top_annotation = heatmap_first_H3K9me3,
         column_title="Unfiltered log2cpm H3K9me3")
+
+
+Heatmap(first_H3K9me3_counts_cor_noM, 
+        top_annotation = heatmap_first_H3K9me3,
+        column_title="Unfiltered log2cpm H3K9me3 without mito reads")
 ```
 
 
@@ -823,9 +946,15 @@ Heatmap(first_H3K9me3_counts_cor,
 count_H3K36me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/H3K36me3_counts.txt", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE, skip = 1)
-
+noM_count_H3K36me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/noM_count_H3K36me3", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
 
 Fragment_H3K36me3_txt <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/H3K36me3_counts.txt.summary", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE)
+
+Fragment_H3K36me3_txt_noM <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/noM_count_H3K36me3.summary", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE)
 rename_list <- sampleinfo %>% 
@@ -837,7 +966,7 @@ rename_list <- sampleinfo %>%
 rename_vec <- setNames(rename_list$newname, rename_list$oldname)
 
 names(count_H3K36me3)[names(count_H3K36me3) %in% names(rename_vec)] <- rename_vec[names(count_H3K36me3)[names(count_H3K36me3) %in% names(rename_vec)]]
-
+names(noM_count_H3K36me3)[names(noM_count_H3K36me3) %in% names(rename_vec_noM)] <- rename_vec_noM[names(noM_count_H3K36me3)[names(noM_count_H3K36me3) %in% names(rename_vec_noM)]]
 
 ```
 
@@ -849,9 +978,19 @@ H3K36me3_counts_raw <- count_H3K36me3 %>%
   dplyr::select(Geneid,`1_5FU_24t_H3K36me3`:`5_VEH_144r_H3K36me3`) %>% 
   column_to_rownames("Geneid") %>% 
   as.matrix()
+H3K36me3_counts_raw_noM <- noM_count_H3K36me3 %>% 
+  dplyr::select(Geneid,`1_5FU_24t_H3K36me3`:`5_VEH_144r_H3K36me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
 
 
 first_H3K36me3_counts_cor <- count_H3K36me3 %>% 
+  dplyr::select(Geneid,`1_5FU_24t_H3K36me3`:`5_VEH_144r_H3K36me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  cpm(., log = TRUE) %>% 
+  cor()
+
+first_H3K36me3_counts_cor_noM <- noM_count_H3K36me3 %>% 
   dplyr::select(Geneid,`1_5FU_24t_H3K36me3`:`5_VEH_144r_H3K36me3`) %>% 
   column_to_rownames("Geneid") %>% 
   cpm(., log = TRUE) %>% 
@@ -867,6 +1006,10 @@ heatmap_first_H3K36me3 <- ComplexHeatmap::HeatmapAnnotation(df = annomat_H3K36me
 Heatmap(first_H3K36me3_counts_cor, 
         top_annotation = heatmap_first_H3K36me3,
         column_title="Unfiltered log2cpm H3K36me3")
+
+Heatmap(first_H3K36me3_counts_cor_noM, 
+        top_annotation = heatmap_first_H3K36me3,
+        column_title="Unfiltered log2cpm H3K36me3 without mito reads")
 ```
 
 
@@ -874,64 +1017,65 @@ Heatmap(first_H3K36me3_counts_cor,
 #### Fragment Width
 
 ```{r Frag width}
-histone_list <- c("H3K27ac","H3K27me3","H3K9me3","H3K36me3")
+
+histone_list <- c("H3K27ac", "H3K27me3", "H3K9me3", "H3K36me3")
 base_path <- "C:/Users/renee/Other_projects_data/5FU_data/prelim-data"
 
-# get_peak_widths <- function(histone_name, base_path) {
-#   path <- file.path(base_path, histone_name, "macs2_output")
-#   
-#   file_list <- list.files(path = path, pattern = "\\.narrowPeak$", full.names = TRUE)
-#   
-#   peak_list <- map(file_list, ~ {
-#     fread(.x, header = FALSE) %>%
-#       transmute(width = abs(V3 - V2))
-#   })
-# 
-#   names(peak_list) <- paste0(histone_name, "_", tools::file_path_sans_ext(basename(file_list)))
-# 
-#   peak_widths <- bind_cols(peak_list)
-# 
-#   return(peak_widths)
-# }
-# all_widths_list <- map(histone_list, ~ get_peak_widths(.x, base_path))
-#   
-```
-
-
-```{r}
-histone_list <- c("H3K27ac","H3K27me3","H3K9me3","H3K36me3")
-base_path <- "C:/Users/renee/Other_projects_data/5FU_data/prelim-data"
-
-get_peak_widths_long <- function(histone_name, base_path) {
+get_peak_widths_long_split <- function(histone_name, base_path) {
   path <- file.path(base_path, histone_name, "macs2_output")
   
   file_list <- list.files(path = path, pattern = "\\.(narrowPeak|broadPeak)$", full.names = TRUE)
-   # Exclude files with 'all_peaks' in the name
-  file_list <- file_list[!grepl("all_peaks", basename(file_list))]
-
   
-  peak_list <- purrr::map(file_list, function(file_path) {
+  # Exclude files with 'all_peaks' in the name
+  file_list <- file_list[!grepl("all_peaks", basename(file_list), ignore.case = TRUE)]
+  
+  # Split into noM and not noM groups
+  noM_files <- file_list[grepl("noM", basename(file_list))]
+  reg_files <- file_list[!grepl("noM", basename(file_list))]
+
+  # Define internal peak processing function
+  process_peaks <- function(file_path, group_label) {
     filename <- basename(file_path)
-    fread(file_path, header = FALSE) %>%
+    peak_df <- fread(file_path, header = FALSE) %>%
       transmute(
         row = row_number(),
         width = abs(V3 - V2),
-        file = paste0(histone_name, "-", filename)
+        file = paste0(histone_name, "-", filename),
+        group = group_label
       )
     return(peak_df)
-  })
-  
-  dplyr::bind_rows(peak_list)
+  }
+
+  # Process each group
+  peak_list <- list(
+    map(noM_files, process_peaks, group_label = "noM"),
+    map(reg_files, process_peaks, group_label = "regular")
+  ) %>% flatten()
+
+  bind_rows(peak_list)
 }
+
 
 ```
 
 ```{r fragment visulization}
 
-all_peaks_long <- map_dfr(histone_list, ~ get_peak_widths_long(.x, base_path))
+# To apply to all histones:
+all_peak_widths <- purrr::map_df(histone_list, get_peak_widths_long_split, base_path = base_path)
 
-anno_peak_width_long <- all_peaks_long %>% 
-  mutate(file= gsub("_peaks.narrowPeak","",file)) %>% 
+
+anno_peak_width_long <- all_peak_widths %>% 
+  dplyr::filter(group!="noM") %>% 
+    mutate(file= gsub("_noM_peaks.narrowPeak","",file)) %>% 
+    mutate(file= gsub("_noM_peaks.broadPeak","",file)) %>% 
+  separate_wider_delim(., cols=file, delim="-",names=c("histone","sample")) %>% 
+  left_join(sampleinfo, by =c("sample"="library_ID"))
+
+anno_peak_width_long_noM <-
+  all_peak_widths %>% 
+  dplyr::filter(group=="noM") %>% 
+    mutate(file= gsub("_noM_peaks.narrowPeak","",file)) %>% 
+    mutate(file= gsub("_noM_peaks.broadPeak","",file)) %>% 
   separate_wider_delim(., cols=file, delim="-",names=c("histone","sample")) %>% 
   left_join(sampleinfo, by =c("sample"="library_ID"))
 
@@ -947,7 +1091,21 @@ anno_peak_width_long %>%
     scale_y_continuous(trans = "log", breaks = c(400, 3000, 22000)) +
     theme_bw(base_size = 18) +
     ylab("Width of Peaks") +
-    xlab("")
+    xlab("")+
+  ggtitle("Width of all peaks with MT reads")
+
+
+anno_peak_width_long_noM %>%
+  # distinct(histone)
+  ggplot(.,aes(x=histone, y = width, fill = histone))+
+  geom_violin()+
+  # scale_fill_viridis_a(discrete = TRUE, begin = 0.1, end = 0.55, option = "magma", alpha = 0.8) +
+  #   scale_color_viridis_a(discrete = TRUE, begin = 0.1, end = 0.9) +
+    scale_y_continuous(trans = "log", breaks = c(400, 3000, 22000)) +
+    theme_bw(base_size = 18) +
+    ylab("Width of Peaks") +
+    xlab("")+
+  ggtitle("Width of all peaks without MT reads")
 ```
   The smaller fragment bits, specifically in H3K26 and K3k9me3 made me realize something was up.  After visualizing the top ranked peaks in some of the peak files by sample, I became aware of chrM contamination.  Below this mark is me trying to remap/and filter out the non-standard chromosomes.
   
@@ -956,4 +1114,253 @@ anno_peak_width_long %>%
 sort -k5,5rn MCW_CT_ROA_215_peaks.narrowPeak | head -n 30
 
 ```
+```{r peakwidth full filtered peaks}
+Fragment_H3K36me3_txt %>% 
+  pivot_longer(., cols=!Status, names_to = "sample", values_to ="count") %>% 
+  pivot_wider(., id_cols = sample, names_from = Status, values_from = count) %>% 
+  rowwise() %>% 
+  mutate(total = sum(c_across(Assigned:Unassigned_Ambiguity))) %>% 
+  dplyr::select(sample,Assigned, Unassigned_NoFeatures,total) %>% 
+  mutate(perc_assign= sprintf("%.2f",(Assigned/total)*100)) %>% 
+  mutate(sample= gsub("_final.bam","",sample)) %>% 
+  left_join(., sampleinfo, by = c("sample"="library_ID")) %>% 
+  mutate(other_time=factor(other_time, levels = c ("24t", "24r", "144r"))) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","DOX","5FU"))) %>% 
+  mutate(perc_assign=as.numeric(perc_assign)) %>% 
+  ggplot(., aes(x=interaction(ind,trt,other_time), y=perc_assign, fill=trt, group = trt))+
+  geom_col()+
+  geom_text(aes(y = 25,label = sample), vjust = 0.2, size = 3, angle = 90)+
 
+   theme_classic()+
+  ggtitle("FRIP for H3K36me3")+
+  ylab("Fraction of reads in peaks * 100")+
+  xlab("samples")+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+
+
+##############################noM
+Fragment_H3K36me3_txt_noM %>% 
+  pivot_longer(., cols=!Status, names_to = "sample", values_to ="count") %>% 
+  pivot_wider(., id_cols = sample, names_from = Status, values_from = count) %>% 
+  rowwise() %>% 
+  mutate(total = sum(c_across(Assigned:Unassigned_Ambiguity))) %>% 
+  dplyr::select(sample,Assigned, Unassigned_NoFeatures,total) %>% 
+  mutate(perc_assign= sprintf("%.2f",(Assigned/total)*100)) %>% 
+  mutate(sample= gsub("_noM_final.bam","",sample)) %>% 
+  left_join(., sampleinfo, by = c("sample"="library_ID")) %>% 
+  mutate(other_time=factor(other_time, levels = c ("24t", "24r", "144r"))) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","DOX","5FU"))) %>% 
+  mutate(perc_assign=as.numeric(perc_assign)) %>% 
+  ggplot(., aes(x=interaction(ind,trt,other_time), y=perc_assign, fill=trt, group = trt))+
+  geom_col()+
+  geom_text(aes(y = 25,label = sample), vjust = 0.2, size = 3, angle = 90)+
+
+   theme_classic()+
+  ggtitle("FRIP for H3K36me3 without mt reads")+
+  ylab("Fraction of reads in peaks * 100")+
+  xlab("samples")+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+```
+
+```{r}
+Fragment_H3K9me3_txt %>% 
+  pivot_longer(., cols=!Status, names_to = "sample", values_to ="count") %>% 
+  pivot_wider(., id_cols = sample, names_from = Status, values_from = count) %>% 
+  rowwise() %>% 
+  mutate(total = sum(c_across(Assigned:Unassigned_Ambiguity))) %>% 
+  dplyr::select(sample,Assigned, Unassigned_NoFeatures,total) %>% 
+  mutate(perc_assign= sprintf("%.2f",(Assigned/total)*100)) %>% 
+  mutate(sample= gsub("_final.bam","",sample)) %>% 
+  left_join(., sampleinfo, by = c("sample"="library_ID")) %>% 
+  mutate(other_time=factor(other_time, levels = c ("24t", "24r", "144r"))) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","DOX","5FU"))) %>% 
+  mutate(perc_assign=as.numeric(perc_assign)) %>% 
+  ggplot(., aes(x=interaction(ind,trt,other_time), y=perc_assign, fill=trt, group = trt))+
+  geom_col()+
+  geom_text(aes(y = 5,label = sample), vjust = 0.2, size = 3, angle = 90)+
+   theme_classic()+
+  ggtitle("FRIP for H3K9me3")+ 
+  ylab("Fraction of reads in peaks * 100")+
+  xlab("samples")+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+
+###################################noM###########
+Fragment_H3K9me3_txt_noM %>% 
+  pivot_longer(., cols=!Status, names_to = "sample", values_to ="count") %>% 
+  pivot_wider(., id_cols = sample, names_from = Status, values_from = count) %>% 
+  rowwise() %>% 
+  mutate(total = sum(c_across(Assigned:Unassigned_Ambiguity))) %>% 
+  dplyr::select(sample,Assigned, Unassigned_NoFeatures,total) %>% 
+  mutate(perc_assign= sprintf("%.2f",(Assigned/total)*100)) %>% 
+  mutate(sample= gsub("_noM_final.bam","",sample)) %>% 
+  left_join(., sampleinfo, by = c("sample"="library_ID")) %>% 
+  mutate(other_time=factor(other_time, levels = c ("24t", "24r", "144r"))) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","DOX","5FU"))) %>% 
+  mutate(perc_assign=as.numeric(perc_assign)) %>% 
+  ggplot(., aes(x=interaction(ind,trt,other_time), y=perc_assign, fill=trt, group = trt))+
+  geom_col()+
+  geom_text(aes(y = 5,label = sample), vjust = 0.2, size = 3, angle = 90)+
+   theme_classic()+
+  ggtitle("FRIP for H3K9me3 without mt reads")+ 
+  ylab("Fraction of reads in peaks * 100")+
+  xlab("samples")+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+```
+```{r frip H3K27me3}
+Fragment_H3K27me3_txt %>% 
+  pivot_longer(., cols=!Status, names_to = "sample", values_to ="count") %>% 
+  pivot_wider(., id_cols = sample, names_from = Status, values_from = count) %>% 
+  rowwise() %>% 
+  mutate(total = sum(c_across(Assigned:Unassigned_Ambiguity))) %>% 
+  dplyr::select(sample,Assigned, Unassigned_NoFeatures,total) %>% 
+  mutate(perc_assign= sprintf("%.2f",(Assigned/total)*100)) %>% 
+  mutate(sample= gsub("_final.bam","",sample)) %>% 
+  left_join(., sampleinfo, by = c("sample"="library_ID")) %>% 
+  mutate(other_time=factor(other_time, levels = c ("24t", "24r", "144r"))) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","DOX","5FU"))) %>% 
+  mutate(perc_assign=as.numeric(perc_assign)) %>% 
+  ggplot(., aes(x=interaction(ind,trt,other_time), y=perc_assign, fill=trt, group = trt))+
+  geom_col()+
+  geom_text(aes(y = 25,label = sample), vjust = 0.2, size = 3, angle = 90)+
+   theme_classic()+
+  ylab("Fraction of reads in peaks * 100")+
+  xlab("samples")+
+  ggtitle("FRIP for H3K27me3")+ theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+######################noM################################3
+Fragment_H3K27me3_txt_noM %>% 
+  pivot_longer(., cols=!Status, names_to = "sample", values_to ="count") %>% 
+  pivot_wider(., id_cols = sample, names_from = Status, values_from = count) %>% 
+  rowwise() %>% 
+  mutate(total = sum(c_across(Assigned:Unassigned_Ambiguity))) %>% 
+  dplyr::select(sample,Assigned, Unassigned_NoFeatures,total) %>% 
+  mutate(perc_assign= sprintf("%.2f",(Assigned/total)*100)) %>% 
+  mutate(sample= gsub("_noM_final.bam","",sample)) %>% 
+  left_join(., sampleinfo, by = c("sample"="library_ID")) %>% 
+  mutate(other_time=factor(other_time, levels = c ("24t", "24r", "144r"))) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","DOX","5FU"))) %>% 
+  mutate(perc_assign=as.numeric(perc_assign)) %>% 
+  ggplot(., aes(x=interaction(ind,trt,other_time), y=perc_assign, fill=trt, group = trt))+
+  geom_col()+
+  geom_text(aes(y = 25,label = sample), vjust = 0.2, size = 3, angle = 90)+
+   theme_classic()+
+  ylab("Fraction of reads in peaks * 100")+
+  xlab("samples")+
+  ggtitle("FRIP for H3K27me3 without mt reads")+ theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+```
+
+```{r frip H3K27ac}
+
+Fragment_H3K27ac_txt %>% 
+  pivot_longer(., cols=!Status, names_to = "sample", values_to ="count") %>% 
+  pivot_wider(., id_cols = sample, names_from = Status, values_from = count) %>% 
+  rowwise() %>% 
+  mutate(total = sum(c_across(Assigned:Unassigned_Ambiguity))) %>% 
+  dplyr::select(sample,Assigned, Unassigned_NoFeatures,total) %>% 
+  mutate(perc_assign= sprintf("%.2f",(Assigned/total)*100)) %>% 
+  mutate(sample= gsub("_final.bam","",sample)) %>% 
+  left_join(., sampleinfo, by = c("sample"="library_ID")) %>% 
+  mutate(other_time=factor(other_time, levels = c ("24t", "24r", "144r"))) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","DOX","5FU"))) %>% 
+  mutate(perc_assign=as.numeric(perc_assign)) %>% 
+  ggplot(., aes(x=interaction(ind,trt,other_time), y=perc_assign, fill=trt, group = trt))+
+  geom_col()+
+  geom_text(aes(y = 15,label = sample), vjust = 0.2, size = 3, angle = 90)+
+   theme_classic()+
+  ggtitle("FRIP for H3K27ac")+ theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ylab("Fraction of reads in peaks * 100")+
+  xlab("samples")+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+
+#######################noM################################
+Fragment_H3K27ac_txt_noM %>% 
+  pivot_longer(., cols=!Status, names_to = "sample", values_to ="count") %>% 
+  pivot_wider(., id_cols = sample, names_from = Status, values_from = count) %>% 
+  rowwise() %>% 
+  mutate(total = sum(c_across(Assigned:Unassigned_Ambiguity))) %>% 
+  dplyr::select(sample,Assigned, Unassigned_NoFeatures,total) %>% 
+  mutate(perc_assign= sprintf("%.2f",(Assigned/total)*100)) %>% 
+  mutate(sample= gsub("_noM_final.bam","",sample)) %>% 
+  left_join(., sampleinfo, by = c("sample"="library_ID")) %>% 
+  mutate(other_time=factor(other_time, levels = c ("24t", "24r", "144r"))) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","DOX","5FU"))) %>% 
+  mutate(perc_assign=as.numeric(perc_assign)) %>% 
+  ggplot(., aes(x=interaction(ind,trt,other_time), y=perc_assign, fill=trt, group = trt))+
+  geom_col()+
+  geom_text(aes(y = 15,label = sample), vjust = 0.2, size = 3, angle = 90)+
+   theme_classic()+
+  ggtitle("FRIP for H3K27ac without mt reads")+ theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ylab("Fraction of reads in peaks * 100")+
+  xlab("samples")+
+  scale_y_continuous( expand = expansion(mult = c(0, .1)))
+
+```
+### Peak width of master peaks
+```{r Width of master peaks}
+H3K27ac_masterpeak <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/macs2_output/filt_H3k27ac_all_merged.bed", remove.unusual = FALSE)
+
+# H3K27ac_masterpeak %>% 
+#          as.data.frame() %>% mutate(standard= if_else(seqnames %in% standard_chroms, "yes","no")) %>% group_by(standard) %>% tally
+
+
+H3K27me3_masterpeak <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/macs2_output/filt_H3k27me3_all_merged.bed", remove.unusual = FALSE)
+       # H3K27me3_masterpeak %>% 
+       #   as.data.frame() %>% mutate(standard= if_else(seqnames %in% standard_chroms, "yes","no")) %>% group_by(standard) %>% tally
+       
+H3K9me3_masterpeak <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/macs2_output/filt_H3k9me3_all_merged.bed", remove.unusual = FALSE)
+       # H3K9me3_masterpeak %>% 
+       #   as.data.frame() %>% mutate(standard= if_else(seqnames %in% standard_chroms, "yes","no")) %>% group_by(standard) %>% tally  
+       
+H3K36me3_masterpeak <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/macs2_output/filt_H3k36me3_all_merged.bed", remove.unusual = FALSE)
+       # H3K36me3_masterpeak %>% 
+       #   as.data.frame() %>% mutate(standard= if_else(seqnames %in% standard_chroms, "yes","no")) %>% group_by(standard) %>% tally         
+       
+
+
+master_peak_width <- data_frame(histone_width=width(H3K27me3_masterpeak),histone="H3K27me3") %>% 
+  rbind(data_frame(histone_width=width(H3K27ac_masterpeak),histone="H3K27ac")) %>% 
+  rbind(data_frame(histone_width=width(H3K9me3_masterpeak),histone="H3K9me3")) %>% 
+  rbind(data_frame(histone_width=width(H3K36me3_masterpeak), histone = "H3K36me3"))
+
+master_peak_width %>% 
+  ggplot(.,aes(x=histone, y = histone_width, fill = histone))+
+  geom_violin()+
+    scale_y_continuous(trans = "log", breaks = c(400, 3000, 22000)) +
+    theme_bw(base_size = 18) +
+    ylab("Width of Peaks") +
+    xlab("")+
+  ggtitle("Master peak list widths with mt reads")
+  
+```
+```{r}
+H3K27ac_masterpeak_noM <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/macs2_output/filt_H3k27ac_noM_all_merged.bed", remove.unusual = FALSE)
+
+H3K27me3_masterpeak_noM <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/macs2_output/filt_H3k27me3_noM_all_merged.bed", remove.unusual = FALSE)
+       
+H3K9me3_masterpeak_noM <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/macs2_output/filt_H3k9me3_noM_all_merged.bed", remove.unusual = FALSE)
+       
+       
+H3K36me3_masterpeak_noM <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/macs2_output/filt_H3k36me3_noM_all_merged.bed", remove.unusual = FALSE)
+      
+
+
+master_peak_width_noM <- data_frame(histone_width=width(H3K27me3_masterpeak_noM),histone="H3K27me3") %>% 
+  rbind(data_frame(histone_width=width(H3K27ac_masterpeak_noM),histone="H3K27ac")) %>% 
+  rbind(data_frame(histone_width=width(H3K9me3_masterpeak_noM),histone="H3K9me3")) %>% 
+  rbind(data_frame(histone_width=width(H3K36me3_masterpeak_noM), histone = "H3K36me3"))
+
+master_peak_width_noM %>% 
+  ggplot(.,aes(x=histone, y = histone_width, fill = histone))+
+  geom_violin()+
+    scale_y_continuous(trans = "log", breaks = c(400, 3000, 22000)) +
+    theme_bw(base_size = 18) +
+    ylab("Width of Peaks") +
+    xlab("")+
+  ggtitle("Master Peak list widths without MT reads")
+  
+```
