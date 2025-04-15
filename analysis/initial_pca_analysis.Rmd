@@ -37,6 +37,27 @@ library(readr)
 library(edgeR)
 library(ComplexHeatmap)
 library(genomation)
+library(data.table)
+```
+###### prop var function
+
+```{r function}
+
+prop_var_percent <- function(pca_result){ 
+  # Ensure the input is a PCA result object
+  if (!inherits(pca_result, "prcomp")) {
+    stop("Input must be a result from prcomp()")
+  }
+  
+  # Get the standard deviations from the PCA result
+  sdev <- pca_result$sdev
+  
+  # Calculate the proportion of variance
+  proportion_variance <- (sdev^2) / sum(sdev^2)*100
+  
+  return(proportion_variance)
+}
+
 ```
 
 
@@ -257,23 +278,34 @@ K27ac_filt_lcpm_noM %>%
   geom_histogram()+
   ggtitle("Log2 cpm after filtering without Mitochondrial reads")+
   theme_bw()
+K27ac_unfilt_noM_percent <- prop_var_percent(pca_K27ac_unfilt_noM)
+K27ac_filt_noM_percent <- prop_var_percent(pca_K27ac_filt_noM)
+
+K27ac_unfilt_percent <- prop_var_percent(pca_K27ac_unfilt)
+K27ac_filt_percent <- prop_var_percent(pca_K27ac_filt)
+
 
 
 ```
+
+
+
 ```{r H3K27ac pca plot}
 anno_pca_K27ac_unfilt %>% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle("H3K27ac unfiltered log2cpm")
+  ggtitle("H3K27ac unfiltered log2cpm")+
+  labs(x = sprintf("%.2f %% PC1", K27ac_unfilt_percent[1]), y=sprintf("%.2f %% PC2",K27ac_unfilt_percent[2]))
 
 anno_pca_K27ac_filt %>% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle("H3K27ac filtered log2cpm")
+  ggtitle("H3K27ac filtered log2cpm")+
+  labs(x = sprintf("%.2f %% PC1", K27ac_filt_percent[1]), y=sprintf("%.2f %% PC2",K27ac_filt_percent[2]))
 
 
 ####################33333no M############
@@ -282,14 +314,16 @@ anno_pca_K27ac_unfilt_noM %>%
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle("H3K27ac unfiltered log2cpm without mito reads")
+  ggtitle("H3K27ac unfiltered log2cpm without mito reads")+
+  labs(x = sprintf("%.2f %% PC1", K27ac_unfilt_noM_percent[1]), y=sprintf("%.2f %% PC2",K27ac_unfilt_noM_percent[2]))
 
 anno_pca_K27ac_filt_noM %>% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle("H3K27ac filtered log2cpm without mito reads")
+  ggtitle("H3K27ac filtered log2cpm without mito reads")+
+  labs(x = sprintf("%.2f %% PC1", K27ac_filt_noM_percent[1]), y=sprintf("%.2f %% PC2",K27ac_filt_noM_percent[2]))
 ```
 
 
@@ -340,7 +374,11 @@ pca_K27me3_filt_noM <- prcomp(t(K27me3_filt_lcpm_noM), scale. = TRUE)
 anno_pca_K27me3_unfilt_noM <- pca_K27me3_unfilt_noM$x %>% cbind(.,K27me3_anno_mat_noM)
 anno_pca_K27me3_filt_noM <- pca_K27me3_filt_noM$x %>% cbind(.,K27me3_anno_mat_noM)
 
+K27me3_unfilt_noM_percent <- prop_var_percent(pca_K27me3_unfilt_noM)
+K27me3_filt_noM_percent <- prop_var_percent(pca_K27me3_filt_noM)
 
+K27me3_unfilt_percent <- prop_var_percent(pca_K27me3_unfilt)
+K27me3_filt_percent <- prop_var_percent(pca_K27me3_filt)
 
 ```
 
@@ -351,14 +389,16 @@ anno_pca_K27me3_unfilt %>%
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle("H3K27me3 unfiltered log2cpm")
+  ggtitle("H3K27me3 unfiltered log2cpm")+
+  labs(x = sprintf("%.2f %% PC1", K27me3_unfilt_percent[1]), y=sprintf("%.2f %% PC2",K27me3_unfilt_percent[2]))
 
 anno_pca_K27me3_filt %>% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle("H3K27me3 filtered log2cpm")
+  ggtitle("H3K27me3 filtered log2cpm")+ 
+  labs(x = sprintf("%.2f %% PC1", K27me3_filt_percent[1]), y=sprintf("%.2f %% PC2",K27me3_filt_percent[2]))
 
 ###################noM##############
 
@@ -367,14 +407,16 @@ anno_pca_K27me3_unfilt_noM %>%
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle("H3K27me3 unfiltered log2cpm without mito reads")
+  ggtitle("H3K27me3 unfiltered log2cpm without mito reads")+ 
+  labs(x = sprintf("%.2f %% PC1", K27me3_unfilt_noM_percent[1]), y=sprintf("%.2f %% PC2",K27me3_unfilt_noM_percent[2]))
 
 anno_pca_K27me3_filt_noM %>% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle("H3K27me3 filtered log2cpm without mito reads")
+  ggtitle("H3K27me3 filtered log2cpm without mito reads")+ 
+  labs(x = sprintf("%.2f %% PC1", K27me3_filt_noM_percent[1]), y=sprintf("%.2f %% PC2",K27me3_filt_noM_percent[2]))
 
 ```
 
@@ -425,7 +467,11 @@ pca_K9me3_filt_noM <- prcomp(t(K9me3_filt_lcpm_noM), scale. = TRUE)
 anno_pca_K9me3_unfilt_noM <- pca_K9me3_unfilt_noM$x %>% cbind(.,K9me3_anno_mat_noM)
 anno_pca_K9me3_filt_noM <- pca_K9me3_filt_noM$x %>% cbind(.,K9me3_anno_mat_noM)
 
+K9me3_unfilt_noM_percent <- prop_var_percent(pca_K9me3_unfilt_noM)
+K9me3_filt_noM_percent <- prop_var_percent(pca_K9me3_filt_noM)
 
+K9me3_unfilt_percent <- prop_var_percent(pca_K9me3_unfilt)
+K9me3_filt_percent <- prop_var_percent(pca_K9me3_filt)
 
 ```
 
@@ -435,14 +481,16 @@ anno_pca_K9me3_unfilt %>%
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle("H3K9me3 unfiltered log2cpm")
+  ggtitle("H3K9me3 unfiltered log2cpm")+ 
+  labs(x = sprintf("%.2f %% PC1", K9me3_unfilt_percent[1]), y=sprintf("%.2f %% PC2",K9me3_unfilt_percent[2]))
 
 anno_pca_K9me3_filt %>% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle("H3K9me3 filtered log2cpm")
+  ggtitle("H3K9me3 filtered log2cpm")+ 
+  labs(x = sprintf("%.2f %% PC1", K27ac_filt_percent[1]), y=sprintf("%.2f %% PC2",K27ac_filt_percent[2]))
 
 #######NO M ###############
 anno_pca_K9me3_unfilt_noM %>% 
@@ -450,18 +498,17 @@ anno_pca_K9me3_unfilt_noM %>%
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle("H3K9me3 unfiltered log2cpm without mito reads")
+  ggtitle("H3K9me3 unfiltered log2cpm without mito reads")+ 
+  labs(x = sprintf("%.2f %% PC1", K9me3_unfilt_noM_percent[1]), y=sprintf("%.2f %% PC2",K9me3_unfilt_noM_percent[2]))
 
 anno_pca_K9me3_filt_noM %>% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle("H3K9me3 filtered log2cpm without mito reads")
+  ggtitle("H3K9me3 filtered log2cpm without mito reads")+ 
+  labs(x = sprintf("%.2f %% PC1", K9me3_filt_noM_percent[1]), y=sprintf("%.2f %% PC2",K9me3_filt_noM_percent[2]))
 ```
-```{r}
-```
-
 
 ##  H3K36me3 before and after filtering 
 ```{r H3K36me3 bNa filtering}
@@ -484,7 +531,6 @@ pca_K36me3_filt <- prcomp(t(K36me3_filt_lcpm), scale. = TRUE)
 anno_pca_K36me3_unfilt <- pca_K36me3_unfilt$x %>% cbind(.,K36me3_anno_mat)
 anno_pca_K36me3_filt <- pca_K36me3_filt$x %>% cbind(.,K36me3_anno_mat)
 
-table_test <- summary(pca_K36me3_filt)
 
 ```
 
@@ -508,7 +554,11 @@ pca_K36me3_filt_noM <- prcomp(t(K36me3_filt_lcpm_noM), scale. = TRUE)
 anno_pca_K36me3_unfilt_noM <- pca_K36me3_unfilt_noM$x %>% cbind(.,K36me3_anno_mat_noM)
 anno_pca_K36me3_filt_noM <- pca_K36me3_filt_noM$x %>% cbind(.,K36me3_anno_mat_noM)
 
+K36me3_unfilt_noM_percent <- prop_var_percent(pca_K36me3_unfilt_noM)
+K36me3_filt_noM_percent <- prop_var_percent(pca_K36me3_filt_noM)
 
+K36me3_unfilt_percent <- prop_var_percent(pca_K36me3_unfilt)
+K36me3_filt_percent <- prop_var_percent(pca_K36me3_filt)
 
 ```
 
@@ -519,14 +569,16 @@ anno_pca_K36me3_unfilt %>%
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle("H3K36me3 unfiltered log2cpm")
+  ggtitle("H3K36me3 unfiltered log2cpm")+ 
+  labs(x = sprintf("%.2f %% PC1", K36me3_unfilt_percent[1]), y=sprintf("%.2f %% PC2",K36me3_unfilt_percent[2]))
 
 anno_pca_K36me3_filt %>% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle("H3K36me3 filtered log2cpm")
+  ggtitle("H3K36me3 filtered log2cpm")+ 
+  labs(x = sprintf("%.2f %% PC1", K36me3_filt_percent[1]), y=sprintf("%.2f %% PC2",K36me3_filt_percent[2]))
 
 
 ###############noM###################3333
@@ -537,18 +589,18 @@ anno_pca_K36me3_unfilt_noM %>%
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle("H3K36me3 unfiltered log2cpm without mito reads")
+  ggtitle("H3K36me3 unfiltered log2cpm without mito reads")+ 
+  labs(x = sprintf("%.2f %% PC1", K36me3_unfilt_noM_percent[1]), y=sprintf("%.2f %% PC2",K36me3_unfilt_noM_percent[2]))
 
 anno_pca_K36me3_filt_noM %>% 
   ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
   geom_point(size=5)+
   ggrepel::geom_text_repel(aes(label = indv))+
   theme_bw()+
-  ggtitle("H3K36me3 filtered log2cpm without mito reads")
+  ggtitle("H3K36me3 filtered log2cpm without mito reads")+ 
+  labs(x = sprintf("%.2f %% PC1", K36me3_filt_noM_percent[1]), y=sprintf("%.2f %% PC2",K36me3_filt_noM_percent[2]))
 
 ```
 ## After filtering and recalling peaks:  A whole separate folder
-```{r}
 
-```
 
