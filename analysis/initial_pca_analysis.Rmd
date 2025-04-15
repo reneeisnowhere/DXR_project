@@ -1,0 +1,554 @@
+---
+title: "Prelim_PCA_analysis"
+author: "Renee Matthews"
+date: "2025-04-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE,
+			dev = c("png","pdf")
+	
+)
+```
+
+```{css, echo=FALSE}
+pre {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+pre[class] {
+  max-height: 200px;
+}
+```
+
+##### Loading Packages
+
+```{r package loading}
+library(tidyverse)
+library(readr)
+library(kableExtra)
+library(DT)
+library(readr)
+library(edgeR)
+library(ComplexHeatmap)
+library(genomation)
+```
+
+
+```{r data loading}
+sampleinfo <- read_delim("data/sampleinfo.txt", delim = "\t")
+
+count_H3K27ac <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/count_H3K27ac.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+count_H3K27me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/H3K27me3_counts.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+count_H3K9me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/H3K9me3_counts.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+count_H3K36me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/H3K36me3_counts.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+
+
+noM_count_H3K27ac <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/noM_count_H3K27ac", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+noM_count_H3K27me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/noM_count_H3K27me3", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+noM_count_H3K9me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/noM_count_H3K9me3", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+noM_count_H3K36me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/noM_count_H3K36me3", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+
+rename_list <- sampleinfo %>% 
+  mutate(stem= "_final.bam") %>% 
+  mutate(oldname=paste0(library_ID,stem)) %>% 
+  mutate(newname=paste0(ind,"_",trt,"_",other_time,"_",histone_mark)) %>% 
+  dplyr::select(oldname,newname)
+
+noM_rename_list <- sampleinfo %>% 
+  mutate(stem= "_noM_final.bam") %>% 
+  mutate(oldname=paste0(library_ID,stem)) %>% 
+  mutate(newname=paste0(ind,"_",trt,"_",other_time,"_",histone_mark)) %>% 
+  dplyr::select(oldname,newname)
+  
+rename_vec <- setNames(rename_list$newname, rename_list$oldname)
+
+rename_vec_noM <- setNames(noM_rename_list$newname, noM_rename_list$oldname)
+
+
+names(noM_count_H3K36me3)[names(noM_count_H3K36me3) %in% names(rename_vec_noM)] <- rename_vec_noM[names(noM_count_H3K36me3)[names(noM_count_H3K36me3) %in% names(rename_vec_noM)]]
+
+names(noM_count_H3K9me3)[names(noM_count_H3K9me3) %in% names(rename_vec_noM)] <- rename_vec_noM[names(noM_count_H3K9me3)[names(noM_count_H3K9me3) %in% names(rename_vec_noM)]]
+
+names(noM_count_H3K27me3)[names(noM_count_H3K27me3) %in% names(rename_vec_noM)] <- rename_vec_noM[names(noM_count_H3K27me3)[names(noM_count_H3K27me3) %in% names(rename_vec_noM)]]
+
+names(noM_count_H3K27ac)[names(noM_count_H3K27ac) %in% names(rename_vec_noM)] <- rename_vec_noM[names(noM_count_H3K27ac)[names(noM_count_H3K27ac) %in% names(rename_vec_noM)]]
+
+
+names(count_H3K36me3)[names(count_H3K36me3) %in% names(rename_vec)] <- rename_vec[names(count_H3K36me3)[names(count_H3K36me3) %in% names(rename_vec)]]
+names(count_H3K9me3)[names(count_H3K9me3) %in% names(rename_vec)] <- rename_vec[names(count_H3K9me3)[names(count_H3K9me3) %in% names(rename_vec)]]
+names(count_H3K27me3)[names(count_H3K27me3) %in% names(rename_vec)] <- rename_vec[names(count_H3K27me3)[names(count_H3K27me3) %in% names(rename_vec)]]
+names(count_H3K27ac)[names(count_H3K27ac) %in% names(rename_vec)] <- rename_vec[names(count_H3K27ac)[names(count_H3K27ac) %in% names(rename_vec)]]
+
+histone_list <- c("H3K27ac","H3K27me3","H3K9me3","H3K36me3")
+
+H3K27ac_counts_raw <- count_H3K27ac %>% 
+  dplyr::select(Geneid,`3_VEH_24r_H3K27ac`:`3_DOX_24r_H3K27ac`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+
+H3K27me3_counts_raw <- count_H3K27me3 %>% 
+  dplyr::select(Geneid,`1_VEH_24t_H3K27me3`:`5_VEH_24r_H3K27me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+
+H3K9me3_counts_raw <- count_H3K9me3 %>% 
+  dplyr::select(Geneid,`1_DOX_24t_H3K9me3`:`5_5FU_144r_H3K9me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+
+H3K36me3_counts_raw <- count_H3K36me3 %>% 
+  dplyr::select(Geneid,`1_5FU_24t_H3K36me3`:`5_VEH_144r_H3K36me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+
+#####noM
+
+H3K27ac_noM_counts_raw <- noM_count_H3K27ac %>% 
+  dplyr::select(Geneid,`3_VEH_24r_H3K27ac`:`3_DOX_24r_H3K27ac`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+
+H3K27me3_noM_counts_raw <- noM_count_H3K27me3 %>% 
+  dplyr::select(Geneid,`1_VEH_24t_H3K27me3`:`5_VEH_24r_H3K27me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+
+H3K9me3_noM_counts_raw <- noM_count_H3K9me3 %>% 
+  dplyr::select(Geneid,`1_DOX_24t_H3K9me3`:`5_5FU_144r_H3K9me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+
+H3K36me3_noM_counts_raw <- noM_count_H3K36me3 %>% 
+  dplyr::select(Geneid,`1_5FU_24t_H3K36me3`:`5_VEH_144r_H3K36me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+
+standard_chroms <- paste0("chr", c(1:22, "X", "Y"))
+```
+
+exploring if inital masterpeak lists have non-standard chromosomes or chrM contamination
+
+```{r}
+H3K27ac_masterpeak <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/macs2_output/filt_H3k27ac_all_merged.bed", remove.unusual = FALSE)
+
+H3K27ac_masterpeak %>% 
+         as.data.frame() %>% mutate(standard= if_else(seqnames %in% standard_chroms, "yes","no")) %>% group_by(standard) %>% tally
+
+
+H3K27me3_masterpeak <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/macs2_output/filt_H3k27me3_all_merged.bed", remove.unusual = FALSE)
+       H3K27me3_masterpeak %>% 
+         as.data.frame() %>% mutate(standard= if_else(seqnames %in% standard_chroms, "yes","no")) %>% group_by(standard) %>% tally
+       
+H3K9me3_masterpeak <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/macs2_output/filt_H3k9me3_all_merged.bed", remove.unusual = FALSE)
+       H3K9me3_masterpeak %>% 
+         as.data.frame() %>% mutate(standard= if_else(seqnames %in% standard_chroms, "yes","no")) %>% group_by(standard) %>% tally  
+       
+H3K36me3_masterpeak <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/macs2_output/filt_H3k36me3_all_merged.bed", remove.unusual = FALSE)
+       H3K36me3_masterpeak %>% 
+         as.data.frame() %>% mutate(standard= if_else(seqnames %in% standard_chroms, "yes","no")) %>% group_by(standard) %>% tally         
+       
+       
+         
+```
+yes, the peaks calls are contaminated in H3K9me3 and H3K36me3...  I am going to filter the bamfiles and redo peak calling.
+
+
+
+
+## before and after filtering for H3K27ac
+
+```{r H3K27ac bNa filtering}
+lcpm_K27ac_rm <- cpm(H3K27ac_counts_raw, log = TRUE)
+K27ac_rm <- rowMeans(lcpm_K27ac_rm)
+K27ac_filt_raw <- H3K27ac_counts_raw[K27ac_rm>0,]
+dim(K27ac_filt_raw)
+
+k27ac_anno_mat <- 
+data.frame(timeset=colnames(H3K27ac_counts_raw)) %>% 
+  mutate(sample=timeset) %>% 
+  separate(timeset, into = c("indv","trt","time","histone")) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","5FU","DOX")),
+         time=factor(time, levels =c("24t","24r","144r"))) 
+
+K27ac_filt_lcpm <- cpm(K27ac_filt_raw, log = TRUE)
+pca_K27ac_unfilt <- prcomp(t(lcpm_K27ac_rm), scale. = TRUE)
+pca_K27ac_filt <- prcomp(t(K27ac_filt_lcpm), scale. = TRUE)
+
+anno_pca_K27ac_unfilt <- pca_K27ac_unfilt$x %>% cbind(.,k27ac_anno_mat)
+anno_pca_K27ac_filt <- pca_K27ac_filt$x %>% cbind(.,k27ac_anno_mat)
+
+lcpm_K27ac_rm %>% 
+  as.data.frame() %>% 
+  rownames_to_column("region") %>% 
+  pivot_longer(., -region, names_to="sample",values_to = "log2_cpm") %>% 
+  ggplot(.,aes(x=log2_cpm))+
+  geom_histogram()+
+  ggtitle("Log2 cpm before filtering")+
+  theme_bw()
+
+K27ac_filt_lcpm %>%
+  as.data.frame() %>% 
+  rownames_to_column("region") %>% 
+  pivot_longer(., -region, names_to="sample",values_to = "log2_cpm") %>% 
+  ggplot(.,aes(x=log2_cpm))+
+  geom_histogram()+
+  ggtitle("Log2 cpm after filtering")+
+  theme_bw()
+
+
+```
+
+```{r _noM H3K27ac bNa filtering}
+lcpm_K27ac_rm_noM <- cpm(H3K27ac_noM_counts_raw, log = TRUE)
+K27ac_rm_noM <- rowMeans(lcpm_K27ac_rm_noM)
+K27ac_filt_raw_noM <- H3K27ac_noM_counts_raw[K27ac_rm_noM>0,]
+dim(K27ac_filt_raw_noM)
+
+k27ac_anno_mat_noM <- 
+data.frame(timeset=colnames(H3K27ac_noM_counts_raw)) %>% 
+  mutate(sample=timeset) %>% 
+  separate(timeset, into = c("indv","trt","time","histone")) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","5FU","DOX")),
+         time=factor(time, levels =c("24t","24r","144r"))) 
+
+K27ac_filt_lcpm_noM <- cpm(K27ac_filt_raw_noM, log = TRUE)
+pca_K27ac_unfilt_noM <- prcomp(t(lcpm_K27ac_rm_noM), scale. = TRUE)
+pca_K27ac_filt_noM <- prcomp(t(K27ac_filt_lcpm_noM), scale. = TRUE)
+
+anno_pca_K27ac_unfilt_noM <- pca_K27ac_unfilt_noM$x %>% cbind(.,k27ac_anno_mat_noM)
+anno_pca_K27ac_filt_noM <- pca_K27ac_filt_noM$x %>% cbind(.,k27ac_anno_mat_noM)
+
+lcpm_K27ac_rm_noM %>% 
+  as.data.frame() %>% 
+  rownames_to_column("region") %>% 
+  pivot_longer(., -region, names_to="sample",values_to = "log2_cpm") %>% 
+  ggplot(.,aes(x=log2_cpm))+
+  geom_histogram()+
+  ggtitle("Log2 cpm before filtering without Mitochondrial reads")+
+  theme_bw()
+
+K27ac_filt_lcpm_noM %>%
+  as.data.frame() %>% 
+  rownames_to_column("region") %>% 
+  pivot_longer(., -region, names_to="sample",values_to = "log2_cpm") %>% 
+  ggplot(.,aes(x=log2_cpm))+
+  geom_histogram()+
+  ggtitle("Log2 cpm after filtering without Mitochondrial reads")+
+  theme_bw()
+
+
+```
+```{r H3K27ac pca plot}
+anno_pca_K27ac_unfilt %>% 
+  ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
+  geom_point(size=5)+
+  ggrepel::geom_text_repel(aes(label = indv))+
+  theme_bw()+
+  ggtitle("H3K27ac unfiltered log2cpm")
+
+anno_pca_K27ac_filt %>% 
+  ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
+  geom_point(size=5)+
+  ggrepel::geom_text_repel(aes(label = indv))+
+  theme_bw()+
+  ggtitle("H3K27ac filtered log2cpm")
+
+
+####################33333no M############
+anno_pca_K27ac_unfilt_noM %>% 
+  ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
+  geom_point(size=5)+
+  ggrepel::geom_text_repel(aes(label = indv))+
+  theme_bw()+
+  ggtitle("H3K27ac unfiltered log2cpm without mito reads")
+
+anno_pca_K27ac_filt_noM %>% 
+  ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
+  geom_point(size=5)+
+  ggrepel::geom_text_repel(aes(label = indv))+
+  theme_bw()+
+  ggtitle("H3K27ac filtered log2cpm without mito reads")
+```
+
+
+##  H3K27me3 before and after filtering 
+
+```{r H3K27me3 bNa filtering}
+lcpm_K27me3_rm <- cpm(H3K27me3_counts_raw, log = TRUE)
+K27me3_rm <- rowMeans(lcpm_K27me3_rm)
+K27me3_filt_raw <- H3K27me3_counts_raw[K27me3_rm>0,]
+dim(K27me3_filt_raw)
+
+K27me3_anno_mat <- 
+data.frame(timeset=colnames(H3K27me3_counts_raw)) %>% 
+  mutate(sample=timeset) %>% 
+  separate(timeset, into = c("indv","trt","time","histone")) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","5FU","DOX")),
+         time=factor(time, levels =c("24t","24r","144r"))) 
+
+K27me3_filt_lcpm <- cpm(K27me3_filt_raw, log = TRUE)
+pca_K27me3_unfilt <- prcomp(t(lcpm_K27me3_rm), scale. = TRUE)
+pca_K27me3_filt <- prcomp(t(K27me3_filt_lcpm), scale. = TRUE)
+
+anno_pca_K27me3_unfilt <- pca_K27me3_unfilt$x %>% cbind(.,K27me3_anno_mat)
+anno_pca_K27me3_filt <- pca_K27me3_filt$x %>% cbind(.,K27me3_anno_mat)
+
+
+
+```
+
+
+```{r noM H3K27me3 bNa filtering}
+lcpm_K27me3_rm_noM <- cpm(H3K27me3_noM_counts_raw, log = TRUE)
+K27me3_rm_noM <- rowMeans(lcpm_K27me3_rm_noM)
+K27me3_filt_raw_noM <- H3K27me3_noM_counts_raw[K27me3_rm_noM>0,]
+dim(K27me3_filt_raw_noM)
+
+K27me3_anno_mat_noM <- 
+data.frame(timeset=colnames(H3K27me3_noM_counts_raw)) %>% 
+  mutate(sample=timeset) %>% 
+  separate(timeset, into = c("indv","trt","time","histone")) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","5FU","DOX")),
+         time=factor(time, levels =c("24t","24r","144r"))) 
+
+K27me3_filt_lcpm_noM <- cpm(K27me3_filt_raw_noM, log = TRUE)
+pca_K27me3_unfilt_noM <- prcomp(t(lcpm_K27me3_rm_noM), scale. = TRUE)
+pca_K27me3_filt_noM <- prcomp(t(K27me3_filt_lcpm_noM), scale. = TRUE)
+
+anno_pca_K27me3_unfilt_noM <- pca_K27me3_unfilt_noM$x %>% cbind(.,K27me3_anno_mat_noM)
+anno_pca_K27me3_filt_noM <- pca_K27me3_filt_noM$x %>% cbind(.,K27me3_anno_mat_noM)
+
+
+
+```
+
+
+```{r H3K27me3 pca plot}
+anno_pca_K27me3_unfilt %>% 
+  ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
+  geom_point(size=5)+
+  ggrepel::geom_text_repel(aes(label = indv))+
+  theme_bw()+
+  ggtitle("H3K27me3 unfiltered log2cpm")
+
+anno_pca_K27me3_filt %>% 
+  ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
+  geom_point(size=5)+
+  ggrepel::geom_text_repel(aes(label = indv))+
+  theme_bw()+
+  ggtitle("H3K27me3 filtered log2cpm")
+
+###################noM##############
+
+anno_pca_K27me3_unfilt_noM %>% 
+  ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
+  geom_point(size=5)+
+  ggrepel::geom_text_repel(aes(label = indv))+
+  theme_bw()+
+  ggtitle("H3K27me3 unfiltered log2cpm without mito reads")
+
+anno_pca_K27me3_filt_noM %>% 
+  ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
+  geom_point(size=5)+
+  ggrepel::geom_text_repel(aes(label = indv))+
+  theme_bw()+
+  ggtitle("H3K27me3 filtered log2cpm without mito reads")
+
+```
+
+
+##  H3K9me3 before and after filtering 
+
+```{r H3K9me3 bNa filtering}
+lcpm_K9me3_rm <- cpm(H3K9me3_counts_raw, log = TRUE)
+K9me3_rm <- rowMeans(lcpm_K9me3_rm)
+K9me3_filt_raw <- H3K9me3_counts_raw[K9me3_rm>0,]
+dim(K9me3_filt_raw)
+
+K9me3_anno_mat <- 
+data.frame(timeset=colnames(H3K9me3_counts_raw)) %>% 
+  mutate(sample=timeset) %>% 
+  separate(timeset, into = c("indv","trt","time","histone")) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","5FU","DOX")),
+         time=factor(time, levels =c("24t","24r","144r"))) 
+
+K9me3_filt_lcpm <- cpm(K9me3_filt_raw, log = TRUE)
+pca_K9me3_unfilt <- prcomp(t(lcpm_K9me3_rm), scale. = TRUE)
+pca_K9me3_filt <- prcomp(t(K9me3_filt_lcpm), scale. = TRUE)
+
+anno_pca_K9me3_unfilt <- pca_K9me3_unfilt$x %>% cbind(.,K9me3_anno_mat)
+anno_pca_K9me3_filt <- pca_K9me3_filt$x %>% cbind(.,K9me3_anno_mat)
+
+
+
+```
+
+```{r noM H3K9me3 bNa filtering}
+lcpm_K9me3_rm_noM <- cpm(H3K9me3_noM_counts_raw, log = TRUE)
+K9me3_rm_noM <- rowMeans(lcpm_K9me3_rm_noM)
+K9me3_filt_raw_noM <- H3K9me3_noM_counts_raw[K9me3_rm_noM>0,]
+dim(K9me3_filt_raw_noM)
+
+K9me3_anno_mat_noM <- 
+data.frame(timeset=colnames(H3K9me3_noM_counts_raw)) %>% 
+  mutate(sample=timeset) %>% 
+  separate(timeset, into = c("indv","trt","time","histone")) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","5FU","DOX")),
+         time=factor(time, levels =c("24t","24r","144r"))) 
+
+K9me3_filt_lcpm_noM <- cpm(K9me3_filt_raw_noM, log = TRUE)
+pca_K9me3_unfilt_noM <- prcomp(t(lcpm_K9me3_rm_noM), scale. = TRUE)
+pca_K9me3_filt_noM <- prcomp(t(K9me3_filt_lcpm_noM), scale. = TRUE)
+
+anno_pca_K9me3_unfilt_noM <- pca_K9me3_unfilt_noM$x %>% cbind(.,K9me3_anno_mat_noM)
+anno_pca_K9me3_filt_noM <- pca_K9me3_filt_noM$x %>% cbind(.,K9me3_anno_mat_noM)
+
+
+
+```
+
+```{r H3K9me3 pca plot}
+anno_pca_K9me3_unfilt %>% 
+  ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
+  geom_point(size=5)+
+  ggrepel::geom_text_repel(aes(label = indv))+
+  theme_bw()+
+  ggtitle("H3K9me3 unfiltered log2cpm")
+
+anno_pca_K9me3_filt %>% 
+  ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
+  geom_point(size=5)+
+  ggrepel::geom_text_repel(aes(label = indv))+
+  theme_bw()+
+  ggtitle("H3K9me3 filtered log2cpm")
+
+#######NO M ###############
+anno_pca_K9me3_unfilt_noM %>% 
+  ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
+  geom_point(size=5)+
+  ggrepel::geom_text_repel(aes(label = indv))+
+  theme_bw()+
+  ggtitle("H3K9me3 unfiltered log2cpm without mito reads")
+
+anno_pca_K9me3_filt_noM %>% 
+  ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
+  geom_point(size=5)+
+  ggrepel::geom_text_repel(aes(label = indv))+
+  theme_bw()+
+  ggtitle("H3K9me3 filtered log2cpm without mito reads")
+```
+```{r}
+```
+
+
+##  H3K36me3 before and after filtering 
+```{r H3K36me3 bNa filtering}
+lcpm_K36me3_rm <- cpm(H3K36me3_counts_raw, log = TRUE)
+K36me3_rm <- rowMeans(lcpm_K36me3_rm)
+K36me3_filt_raw <- H3K36me3_counts_raw[K36me3_rm>0,]
+dim(K36me3_filt_raw)
+
+K36me3_anno_mat <- 
+data.frame(timeset=colnames(H3K36me3_counts_raw)) %>% 
+  mutate(sample=timeset) %>% 
+  separate(timeset, into = c("indv","trt","time","histone")) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","5FU","DOX")),
+         time=factor(time, levels =c("24t","24r","144r"))) 
+
+K36me3_filt_lcpm <- cpm(K36me3_filt_raw, log = TRUE)
+pca_K36me3_unfilt <- prcomp(t(lcpm_K36me3_rm), scale. = TRUE)
+pca_K36me3_filt <- prcomp(t(K36me3_filt_lcpm), scale. = TRUE)
+
+anno_pca_K36me3_unfilt <- pca_K36me3_unfilt$x %>% cbind(.,K36me3_anno_mat)
+anno_pca_K36me3_filt <- pca_K36me3_filt$x %>% cbind(.,K36me3_anno_mat)
+
+table_test <- summary(pca_K36me3_filt)
+
+```
+
+```{r noM H3K36me3 bNa filtering}
+lcpm_K36me3_rm_noM <- cpm(H3K36me3_noM_counts_raw, log = TRUE)
+K36me3_rm_noM <- rowMeans(lcpm_K36me3_rm_noM)
+K36me3_filt_raw_noM <- H3K36me3_noM_counts_raw[K36me3_rm_noM>0,]
+dim(K36me3_filt_raw_noM)
+
+K36me3_anno_mat_noM <- 
+data.frame(timeset=colnames(H3K36me3_noM_counts_raw)) %>% 
+  mutate(sample=timeset) %>% 
+  separate(timeset, into = c("indv","trt","time","histone")) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","5FU","DOX")),
+         time=factor(time, levels =c("24t","24r","144r"))) 
+
+K36me3_filt_lcpm_noM <- cpm(K36me3_filt_raw_noM, log = TRUE)
+pca_K36me3_unfilt_noM <- prcomp(t(lcpm_K36me3_rm_noM), scale. = TRUE)
+pca_K36me3_filt_noM <- prcomp(t(K36me3_filt_lcpm_noM), scale. = TRUE)
+
+anno_pca_K36me3_unfilt_noM <- pca_K36me3_unfilt_noM$x %>% cbind(.,K36me3_anno_mat_noM)
+anno_pca_K36me3_filt_noM <- pca_K36me3_filt_noM$x %>% cbind(.,K36me3_anno_mat_noM)
+
+
+
+```
+
+
+```{r H3K36me3 pca plot}
+anno_pca_K36me3_unfilt %>% 
+  ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
+  geom_point(size=5)+
+  ggrepel::geom_text_repel(aes(label = indv))+
+  theme_bw()+
+  ggtitle("H3K36me3 unfiltered log2cpm")
+
+anno_pca_K36me3_filt %>% 
+  ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
+  geom_point(size=5)+
+  ggrepel::geom_text_repel(aes(label = indv))+
+  theme_bw()+
+  ggtitle("H3K36me3 filtered log2cpm")
+
+
+###############noM###################3333
+
+
+anno_pca_K36me3_unfilt_noM %>% 
+  ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
+  geom_point(size=5)+
+  ggrepel::geom_text_repel(aes(label = indv))+
+  theme_bw()+
+  ggtitle("H3K36me3 unfiltered log2cpm without mito reads")
+
+anno_pca_K36me3_filt_noM %>% 
+  ggplot(., aes (x = PC1, y = PC2, col =trt, shape = time))+
+  geom_point(size=5)+
+  ggrepel::geom_text_repel(aes(label = indv))+
+  theme_bw()+
+  ggtitle("H3K36me3 filtered log2cpm without mito reads")
+
+```
+## After filtering and recalling peaks:  A whole separate folder
+```{r}
+
+```
+
