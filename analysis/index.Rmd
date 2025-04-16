@@ -8,10 +8,10 @@ editor_options:
   chunk_output_type: console
 ---
 
-## Welcome to the QC page for 5FU
+## Welcome to the QC page for DXR
 
 ### QC analysis  
-#### [click here for qc](https://reneeisnowhere.github.io/5FU_project/QC_seq_analysis.html)
+#### [click here for qc](https://reneeisnowhere.github.io/DXR_project/QC_seq_analysis.html)
   You will find a table of sample counts by treatment,  
   visualization  of those counts across all samples, treatments, and time,  
   Trim information for Read1 and Read2 of each sample,  
@@ -22,11 +22,11 @@ editor_options:
   FRIPs with masterpeak lists and some visulization of Peak widths before and after MT reads.
   
 ### Prelim-PCA analysis 
-#### [click here for PCA-prelim](https://reneeisnowhere.github.io/5FU_project/initial_pca_analysis.html)
+#### [click here for PCA-prelim](https://reneeisnowhere.github.io/DXR_project/initial_pca_analysis.html)
 
 This has log2cpm histograms and PCA plots (working on the PC1 and PC2 dataframes)
 
-[click here for Super-master heatmap of all peak types](https://reneeisnowhere.github.io/5FU_project/first_all_hist_peaks.html)
+[click here for Super-master heatmap of all peak types](https://reneeisnowhere.github.io/DXR_project/first_all_hist_peaks.html)
   
 
 
@@ -34,7 +34,5 @@ This has log2cpm histograms and PCA plots (working on the PC1 and PC2 dataframes
 
 
 
-Want to see the fastqc output?  try this:
-test code
-[ NOT WORKING]()
+
 
