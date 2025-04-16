@@ -43,7 +43,7 @@ library(GenomicRanges)
 ```{r}
 sampleinfo <- read_delim("data/sampleinfo.txt", delim = "\t")
 
-all_hist_peaks <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/all_histone_peak_files/all_hist_counts.txt", 
+all_hist_peaks <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/all_histone_peak_files/all_hist_counts.txt", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE, skip = 1)
 
