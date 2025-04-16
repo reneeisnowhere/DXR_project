@@ -430,11 +430,11 @@ combo_trim_df %>%
 
 ### import files
 
-metric_1 <-  read_delim("C:/Users/reneels/Documents/Ward Lab/5FU_project/Sample_info/first_run_metrics/metric_1.txt", 
+metric_1 <-  read_delim("C:/Users/reneels/Documents/Ward Lab/DXR_project/Sample_info/first_run_metrics/metric_1.txt", 
     delim = "\t", escape_double = FALSE, 
     col_names = FALSE, trim_ws = TRUE)
-metric_2 <- read_delim("C:/Users/renee/Documents/Ward Lab/5FU_project/Sample_info/first_run_metrics/Second_set_info.txt", delim = "\t", escape_double = FALSE, col_names = FALSE, trim_ws = TRUE)
-pull_name_file <- read_csv("C:/Users/renee/Documents/Ward Lab/5FU_project/Sample_info/first_run_metrics/samplesheet.txt", col_names = FALSE)
+metric_2 <- read_delim("C:/Users/renee/Documents/Ward Lab/DXR_project/Sample_info/first_run_metrics/Second_set_info.txt", delim = "\t", escape_double = FALSE, col_names = FALSE, trim_ws = TRUE)
+pull_name_file <- read_csv("C:/Users/renee/Documents/Ward Lab/DXR_project/Sample_info/first_run_metrics/samplesheet.txt", col_names = FALSE)
 pull <- pull_name_file[65:94,]
 
  fun <- cbind(pull, metric_2[,1:8])
@@ -515,7 +515,7 @@ for_plots %>%
 ```
 ### Fragment analysis
 ```{r message=FALSE, warning=FALSE}
-file_list <- list.files(path="C:/Users/renee/Documents/5FU_files/metric_files",
+file_list <- list.files(path="C:/Users/renee/Documents/DXR_files/metric_files",
            pattern ="frag_len_count\\.txt$",full.names = TRUE)
 read_and_label <- function(file) {
   df <- read_delim(file, delim = "\t", col_names = c("Col1", "Col2"))  # Adjust delimiter if needed
@@ -627,13 +627,13 @@ geom_violin(bw = 5) +
 #### Peak count across files
 
 ```{r peakcount, fig.width=12}
-peak_count_H3K27ac <- read_table("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/macs2_output/H3K27ac_peak_count.txt", 
+peak_count_H3K27ac <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_output/H3K27ac_peak_count.txt", 
     col_names = FALSE) %>% 
   dplyr::filter(X2 != "total") %>% 
    mutate(X2=gsub("_peaks.narrowPeak","",X2)) %>% 
     mutate(histone="H3K27ac")
 
-peak_count_H3K27me3 <- read_table("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/macs2_output/H3K27me3_peak_count.txt", 
+peak_count_H3K27me3 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_output/H3K27me3_peak_count.txt", 
     col_names = FALSE)%>% 
   dplyr::filter(X2 != "total") %>% 
    mutate(X2=gsub("_peaks.broadPeak","",X2)) %>% 
@@ -641,7 +641,7 @@ peak_count_H3K27me3 <- read_table("C:/Users/renee/Other_projects_data/5FU_data/p
   mutate(histone="H3K27me3")
 
 
-peak_count_H3K9me3 <- read_table("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/macs2_output/H3K9me3_peak_count.txt", 
+peak_count_H3K9me3 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K9me3/macs2_output/H3K9me3_peak_count.txt", 
     col_names = FALSE) %>% 
   dplyr::filter(X2 != "total") %>% 
    mutate(X2=gsub("_peaks.narrowPeak","",X2)) %>% 
@@ -649,7 +649,7 @@ peak_count_H3K9me3 <- read_table("C:/Users/renee/Other_projects_data/5FU_data/pr
 
 
 
-peak_count_H3K36me3 <- read_table("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/macs2_output/H3K36me3_peak_count.txt", 
+peak_count_H3K36me3 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K36me3/macs2_output/H3K36me3_peak_count.txt", 
     col_names = FALSE) %>% 
   dplyr::filter(X2 != "total") %>% 
   mutate(X2=gsub("_peaks.broadPeak","",X2)) %>% 
@@ -702,19 +702,19 @@ All_peak_count %>%
 ### H3K27ac analysis
 
 ```{r H3K27ac counts}
-count_H3K27ac <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/count_H3K27ac.txt", 
+count_H3K27ac <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/count_H3K27ac.txt", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE, skip = 1)
 
-noM_count_H3K27ac <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/noM_count_H3K27ac", 
+noM_count_H3K27ac <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/noM_count_H3K27ac", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE, skip = 1)
 
-Fragment_H3K27ac_txt <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/count_H3K27ac.txt.summary", 
+Fragment_H3K27ac_txt <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/count_H3K27ac.txt.summary", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE)
 
-Fragment_H3K27ac_txt_noM <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/noM_count_H3K27ac.summary", 
+Fragment_H3K27ac_txt_noM <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/noM_count_H3K27ac.summary", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE)
 rename_list <- sampleinfo %>% 
@@ -784,20 +784,20 @@ Heatmap(first_H3K27ac_counts_cor_noM,
 
 
 ```{r H3k27me3 import}
-count_H3K27me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/H3K27me3_counts.txt", 
+count_H3K27me3 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/H3K27me3_counts.txt", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE, skip = 1)
 
-noM_count_H3K27me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/noM_count_H3K27me3", 
+noM_count_H3K27me3 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/noM_count_H3K27me3", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE, skip = 1)
 
 
-Fragment_H3K27me3_txt <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/H3K27me3_counts.txt.summary", 
+Fragment_H3K27me3_txt <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/H3K27me3_counts.txt.summary", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE)
 
-Fragment_H3K27me3_txt_noM <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/noM_count_H3K27me3.summary", 
+Fragment_H3K27me3_txt_noM <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/noM_count_H3K27me3.summary", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE)
 rename_list <- sampleinfo %>% 
@@ -864,20 +864,20 @@ Heatmap(first_H3K27me3_counts_cor_noM,
 ### H3K9me3 analysis
 
 ```{r}
-count_H3K9me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/H3K9me3_counts.txt", 
+count_H3K9me3 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K9me3/H3K9me3_counts.txt", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE, skip = 1)
 
-noM_count_H3K9me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/noM_count_H3K9me3", 
+noM_count_H3K9me3 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K9me3/noM_count_H3K9me3", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE, skip = 1)
 
 
-Fragment_H3K9me3_txt <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/H3K9me3_counts.txt.summary", 
+Fragment_H3K9me3_txt <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K9me3/H3K9me3_counts.txt.summary", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE)
 
-Fragment_H3K9me3_txt_noM <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/noM_count_H3K9me3.summary", 
+Fragment_H3K9me3_txt_noM <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K9me3/noM_count_H3K9me3.summary", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE)
 rename_list <- sampleinfo %>% 
@@ -943,18 +943,18 @@ Heatmap(first_H3K9me3_counts_cor_noM,
 ### H3K36me3 analysis
 
 ```{r}
-count_H3K36me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/H3K36me3_counts.txt", 
+count_H3K36me3 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K36me3/H3K36me3_counts.txt", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE, skip = 1)
-noM_count_H3K36me3 <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/noM_count_H3K36me3", 
+noM_count_H3K36me3 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K36me3/noM_count_H3K36me3", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE, skip = 1)
 
-Fragment_H3K36me3_txt <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/H3K36me3_counts.txt.summary", 
+Fragment_H3K36me3_txt <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K36me3/H3K36me3_counts.txt.summary", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE)
 
-Fragment_H3K36me3_txt_noM <- read_delim("C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/noM_count_H3K36me3.summary", 
+Fragment_H3K36me3_txt_noM <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K36me3/noM_count_H3K36me3.summary", 
     delim = "\t", escape_double = FALSE, 
     trim_ws = TRUE)
 rename_list <- sampleinfo %>% 
@@ -1019,7 +1019,7 @@ Heatmap(first_H3K36me3_counts_cor_noM,
 ```{r Frag width}
 
 histone_list <- c("H3K27ac", "H3K27me3", "H3K9me3", "H3K36me3")
-base_path <- "C:/Users/renee/Other_projects_data/5FU_data/prelim-data"
+base_path <- "C:/Users/renee/Other_projects_data/DXR_data/prelim-data"
 
 get_peak_widths_long_split <- function(histone_name, base_path) {
   path <- file.path(base_path, histone_name, "macs2_output")
@@ -1302,21 +1302,21 @@ Fragment_H3K27ac_txt_noM %>%
 ```
 ### Peak width of master peaks
 ```{r Width of master peaks}
-H3K27ac_masterpeak <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/macs2_output/filt_H3k27ac_all_merged.bed", remove.unusual = FALSE)
+H3K27ac_masterpeak <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_output/filt_H3k27ac_all_merged.bed", remove.unusual = FALSE)
 
 # H3K27ac_masterpeak %>% 
 #          as.data.frame() %>% mutate(standard= if_else(seqnames %in% standard_chroms, "yes","no")) %>% group_by(standard) %>% tally
 
 
-H3K27me3_masterpeak <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/macs2_output/filt_H3k27me3_all_merged.bed", remove.unusual = FALSE)
+H3K27me3_masterpeak <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_output/filt_H3k27me3_all_merged.bed", remove.unusual = FALSE)
        # H3K27me3_masterpeak %>% 
        #   as.data.frame() %>% mutate(standard= if_else(seqnames %in% standard_chroms, "yes","no")) %>% group_by(standard) %>% tally
        
-H3K9me3_masterpeak <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/macs2_output/filt_H3k9me3_all_merged.bed", remove.unusual = FALSE)
+H3K9me3_masterpeak <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K9me3/macs2_output/filt_H3k9me3_all_merged.bed", remove.unusual = FALSE)
        # H3K9me3_masterpeak %>% 
        #   as.data.frame() %>% mutate(standard= if_else(seqnames %in% standard_chroms, "yes","no")) %>% group_by(standard) %>% tally  
        
-H3K36me3_masterpeak <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/macs2_output/filt_H3k36me3_all_merged.bed", remove.unusual = FALSE)
+H3K36me3_masterpeak <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K36me3/macs2_output/filt_H3k36me3_all_merged.bed", remove.unusual = FALSE)
        # H3K36me3_masterpeak %>% 
        #   as.data.frame() %>% mutate(standard= if_else(seqnames %in% standard_chroms, "yes","no")) %>% group_by(standard) %>% tally         
        
@@ -1338,14 +1338,14 @@ master_peak_width %>%
   
 ```
 ```{r}
-H3K27ac_masterpeak_noM <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27ac/macs2_output/filt_H3k27ac_noM_all_merged.bed", remove.unusual = FALSE)
+H3K27ac_masterpeak_noM <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_output/filt_H3k27ac_noM_all_merged.bed", remove.unusual = FALSE)
 
-H3K27me3_masterpeak_noM <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K27me3/macs2_output/filt_H3k27me3_noM_all_merged.bed", remove.unusual = FALSE)
+H3K27me3_masterpeak_noM <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_output/filt_H3k27me3_noM_all_merged.bed", remove.unusual = FALSE)
        
-H3K9me3_masterpeak_noM <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K9me3/macs2_output/filt_H3k9me3_noM_all_merged.bed", remove.unusual = FALSE)
+H3K9me3_masterpeak_noM <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K9me3/macs2_output/filt_H3k9me3_noM_all_merged.bed", remove.unusual = FALSE)
        
        
-H3K36me3_masterpeak_noM <- readBed(file="C:/Users/renee/Other_projects_data/5FU_data/prelim-data/H3K36me3/macs2_output/filt_H3k36me3_noM_all_merged.bed", remove.unusual = FALSE)
+H3K36me3_masterpeak_noM <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K36me3/macs2_output/filt_H3k36me3_noM_all_merged.bed", remove.unusual = FALSE)
       
 
 
