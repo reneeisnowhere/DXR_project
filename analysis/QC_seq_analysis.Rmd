@@ -513,7 +513,7 @@ for_plots %>%
   theme(axis.text.x=element_text(vjust = .2,angle=90))+
   scale_y_continuous( expand = expansion(mult = c(0, .1)))
 ```
-### Fragment analysis
+### Read analysis
 ```{r message=FALSE, warning=FALSE}
 file_list <- list.files(path="C:/Users/renee/Documents/DXR_files/metric_files",
            pattern ="frag_len_count\\.txt$",full.names = TRUE)
@@ -1050,20 +1050,8 @@ Frag_counts %>%
   xlab("samples")+
   theme(axis.text.x=element_text(vjust = .2,angle=90))+
   scale_y_continuous( expand = expansion(mult = c(0, .1)))
-
-Frag_counts %>% 
-  dplyr::filter(MT_content=="noM") %>% 
-  mutate(count=count/1000000) %>% 
-  left_join(., sampleinfo,by=c("sample"="library_ID","histone"="histone_mark")) %>% 
-  datatable(., options = list(scrollX = TRUE, 
-                              scrollY = "400px",
-                              scrollCollapse = TRUE,
-                              fixedColumns = list(leftColumns =2),
-                              fixedHeader= TRUE),
-            extensions = c("FixedColumns","Scroller"),
-            class = "display")
-
 ```
+
 
 #### Fragment Width
 
@@ -1302,8 +1290,8 @@ Fragment_H3K27me3_txt_noM %>%
   geom_col()+
   geom_text(aes(y = 10,label = sample), vjust = 0.2, size = 3, angle = 90)+
    theme_classic()+
-  ggtitle("Number of mapped reads by sample H3K27me3")+
-  ylab("Count of total mapped reads X 10^6")+
+  ggtitle("Number of mapped fragments by sample H3K27me3")+
+  ylab("Count of total mapped Paired reads X 10^6")+
   xlab("samples")+
   theme(axis.text.x=element_text(vjust = .2,angle=90))+
   scale_y_continuous( expand = expansion(mult = c(0, .1)))
@@ -1383,7 +1371,7 @@ read_count_H3K27ac %>%
   theme(axis.text.x=element_text(vjust = .2,angle=90))+
   scale_y_continuous( expand = expansion(mult = c(0, .1)))
 
-read_count_H3K27ac %>% dplyr::select(sample,perc_assign:trt, other_time)
+# read_count_H3K27ac %>% dplyr::select(sample,perc_assign:trt, other_time)
 ```
 
 
@@ -1450,4 +1438,43 @@ master_peak_width_noM %>%
     xlab("")+
   ggtitle("Master Peak list widths without MT reads")
   
+```
+
+```{r reads and fragment counts, fig.width=12}
+Frag_counts %>% 
+  # dplyr::filter(MT_content=="noM") %>% 
+  mutate(count=count/1000000) %>% 
+  pivot_wider(., id_cols = c(sample,histone),names_from = MT_content, values_from = count) %>% 
+  dplyr::rename("frag_with_mito"=wiM, "frag_no_mito"=noM) %>% 
+  left_join(., sampleinfo,by=c("sample"="library_ID","histone"="histone_mark")) %>% 
+  left_join(., (combo_trim_df %>% 
+                   dplyr::select(prefix,read, `Total Sequences`) %>%
+                  pivot_wider(., id_cols = c(prefix), 
+                              names_from = read,
+                              values_from = 'Total Sequences' ) %>%
+                  rowwise() %>% 
+                  mutate("comboR1_R2"= sum(R1,R2))),
+            by=c("sample"="prefix")) %>% 
+  left_join(., for_plots, by=c("sample"="sample_ID")) %>%
+  dplyr::rename("Total_R1R2"=comboR1_R2, 
+         "frag_map_unique" = aligned_concordant_1,
+         "frag_no_map"=aligned_concordant_0,
+         "frag_more_than1map"=aligned_concordant_g1) %>% 
+  mutate(renee_name=paste0(ind.y,"_",trt.y,"_",other_time.y)) %>% 
+  dplyr::select(sample,sample_ID,histone,Total_R1R2,Paired_Reads,percent_alignment,frag_map_unique,frag_more_than1map,frag_no_map,frag_with_mito, frag_no_mito,renee_name) %>% 
+  
+  datatable(., options = list(scrollX = TRUE, 
+                              scrollY = "400px",
+                              scrollCollapse = TRUE,
+                              fixedColumns = list(leftColumns =2),
+                              fixedHeader= TRUE),
+            extensions = c("FixedColumns","Scroller"),
+            class = "display")
+
+  # combo_trim_df %>% 
+  #   dplyr::select(prefix,read, `Total Sequences`) %>% 
+  #   pivot_wider(., id_cols = c(prefix), names_from = read,values_from = 'Total Sequences' ) %>% 
+  #   rowwise() %>% 
+  #   mutate("comboR1_R2"=sum(R1,R2))
+  #   
 ```
