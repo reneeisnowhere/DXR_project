@@ -1,0 +1,404 @@
+---
+title: "Q value thresholding"
+author: "Renee Matthews"
+date: "2025-04-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE,
+			dev = c("png","pdf")
+	
+)
+```
+
+```{css, echo=FALSE}
+pre {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+pre[class] {
+  max-height: 200px;
+}
+```
+
+##### Loading Packages
+
+```{r package loading}
+library(tidyverse)
+library(readr)
+library(kableExtra)
+library(DT)
+library(readr)
+library(edgeR)
+library(ComplexHeatmap)
+library(genomation)
+library(data.table)
+library(limma)
+library(GenomicRanges)
+```
+
+
+```{r function count plots}
+Plot_cpm_counts <- function(df, histone){
+  lcpm_df_rm <- cpm(df, log = TRUE)
+  df_rm <- rowMeans(lcpm_df_rm)
+  df_filt_raw <- df[df_rm>0,]
+
+
+  df_anno_mat <- data.frame(timeset=colnames(df)) %>% 
+    mutate(sample=timeset) %>% 
+    separate(timeset, into = c("indv","trt","time","histone")) %>% 
+    mutate(trt=factor(trt, levels = c("VEH","5FU","DOX")),
+           time=factor(time, levels =c("24t","24r","144r"))) 
+
+  df_filt_lcpm <- cpm(df_filt_raw, log = TRUE)
+  ###PCa on unfiltered data
+  
+  pca_df_unfilt <- prcomp(t(lcpm_df_rm), scale. = TRUE)
+  percent_var <- round((pca_df_unfilt$sdev)^2 / sum(pca_df_unfilt$sdev^2) * 100, 2)
+  anno_pca_df_unfilt <- as.data.frame(pca_df_unfilt$x) %>% 
+    cbind(df_anno_mat)
+  
+  
+  pca_df_filt <- prcomp(t(df_filt_lcpm), scale. = TRUE)
+  percent_var_filt <- round((pca_df_filt$sdev)^2 / sum(pca_df_filt$sdev^2) * 100, 2)
+  anno_pca_df_filt <- as.data.frame(pca_df_filt$x) %>% 
+    cbind(df_anno_mat)
+  
+  ##histogram before filtering
+  plot1 <- lcpm_df_rm %>% 
+    as.data.frame() %>% 
+    rownames_to_column("region") %>%
+    pivot_longer(., -region, names_to="sample",values_to = "log2_cpm") %>%
+    ggplot(.,aes(x=log2_cpm))+
+    geom_histogram()+
+    ggtitle("Log2 cpm before filtering")+
+    theme_bw()
+  
+  #### PCA before filtering
+  plot2 <- anno_pca_df_unfilt %>% 
+    ggplot(aes(x = PC1, y = PC2, color = trt, shape = time)) +
+    geom_point(size = 5) +
+    ggrepel::geom_text_repel(aes(label = indv)) +
+    theme_bw() +
+    ggtitle(paste0(histone," unfiltered log2cpm")) +
+    labs(
+      x = sprintf("PC1: %.2f%%", percent_var[1]),
+      y = sprintf("PC2: %.2f%%", percent_var[2])
+    )
+ 
+  ## hist after filtering
+  plot3 <- df_filt_lcpm %>%
+    as.data.frame() %>% 
+    rownames_to_column("region") %>%
+    pivot_longer(., -region, names_to="sample",values_to = "log2_cpm") %>%
+    ggplot(.,aes(x=log2_cpm))+
+    geom_histogram()+
+    ggtitle(paste0("Log2 cpm after filtering", histone))+
+    theme_bw()
+  
+  
+  plot4 <- anno_pca_df_filt %>% 
+    ggplot(aes(x = PC1, y = PC2, color = trt, shape = time)) +
+    geom_point(size = 5) +
+    ggrepel::geom_text_repel(aes(label = indv)) +
+    theme_bw() +
+    ggtitle(paste0(histone," filtered log2cpm")) +
+    labs(
+      x = sprintf("PC1: %.2f%%", percent_var[1]),
+      y = sprintf("PC2: %.2f%%", percent_var[2])
+    )
+
+ print(plot1)
+  print(plot2)
+  print(plot3)
+  print(plot4)
+
+  return(invisible(list(
+    hist_before = plot1,
+    hist_after = plot3,
+    pca_unfiltered = plot2,
+    pca_filtered = plot4
+  )))
+}
+```
+
+
+
+
+
+## Q value threshholding
+
+#### H3K27ac info
+
+```{r H3K27ac loading files, message=FALSE, warning=FALSE}
+sampleinfo <- read_delim("data/sampleinfo.txt", delim = "\t")
+
+peak_count_H3K27ac_05 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_peak_q05/peak_count_q05.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.narrowPeak","",X2)) %>% 
+    mutate(histone="H3K27ac") %>% 
+  mutate(qval="0.05")
+peak_count_H3K27ac_01 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_peak_q01/peak_count_q01.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.narrowPeak","",X2)) %>% 
+    mutate(histone="H3K27ac") %>% 
+  mutate(qval="0.01")
+peak_count_H3K27ac_005 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_peak_q005/peak_count_q005.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.narrowPeak","",X2)) %>% 
+    mutate(histone="H3K27ac") %>% 
+  mutate(qval="0.005")
+### Count matrices for each
+count_H3K27ac_05 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/noM_count_H3K27ac_macs2_peak_q05.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+
+count_H3K27ac_01 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/noM_count_H3K27ac_macs2_peak_q01.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+
+count_H3K27ac_005 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/noM_count_H3K27ac_macs2_peak_q005.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+##contains the summary of reads that mapped to the peak file and those that did not
+summary_H3K27ac_05 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/noM_count_H3K27ac_macs2_peak_q05.txt.summary", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE)
+summary_H3K27ac_01 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/noM_count_H3K27ac_macs2_peak_q01.txt.summary", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE)
+summary_H3K27ac_005 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/noM_count_H3K27ac_macs2_peak_q005.txt.summary", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE)
+
+rename_list <- sampleinfo %>% 
+  mutate(stem= "_noM_final.bam") %>%
+  mutate(front="H3K27ac/") %>% 
+  mutate(oldname=paste0(front,library_ID,stem)) %>% 
+  mutate(newname=paste0(ind,"_",trt,"_",other_time,"_",histone_mark)) %>% 
+  dplyr::select(oldname,newname)
+  
+rename_vec <- setNames(rename_list$newname, rename_list$oldname)
+
+names(count_H3K27ac_05)[names(count_H3K27ac_05) %in% names(rename_vec)] <- rename_vec[names(count_H3K27ac_05)[names(count_H3K27ac_05) %in% names(rename_vec)]]
+
+names(count_H3K27ac_01)[names(count_H3K27ac_01) %in% names(rename_vec)] <- rename_vec[names(count_H3K27ac_01)[names(count_H3K27ac_01) %in% names(rename_vec)]]
+
+names(count_H3K27ac_005)[names(count_H3K27ac_005) %in% names(rename_vec)] <- rename_vec[names(count_H3K27ac_005)[names(count_H3K27ac_005) %in% names(rename_vec)]]
+```
+
+
+```{r H3K27ac peak counts}
+peak_count_H3K27ac_05 %>% 
+  rbind(peak_count_H3K27ac_01) %>% 
+  rbind(peak_count_H3K27ac_005) %>% 
+  mutate(qval=factor(qval, levels =c("0.05","0.01","0.005"))) %>% 
+   group_by(qval) %>% 
+  mutate(median_X1 = median(X1)) %>%  # Calculate the median for each qval group
+  ungroup() %>% 
+  ggplot(., aes(x=X2,y=X1, group()))+
+  geom_point(aes(color=qval))+
+  geom_path(aes(group = qval, color = qval), size = 1, linetype = "solid") +
+  geom_hline(aes(yintercept = median_X1, color = qval), linetype = "dashed", size = 1) +
+  ylab("Count of total peaks")+
+  xlab("samples")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ggtitle("Number of called peaks by file")
+
+```
+### Peak width by q value
+
+```{r H3K27ac peak width}
+H3K27ac_masterpeak_05 <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_peak_q05/filt_macs2_peak_q05_H3k27ac_all_merged.bed", remove.unusual = FALSE)
+
+H3K27ac_masterpeak_01 <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_peak_q01/filt_macs2_peak_q01_H3k27ac_all_merged.bed", remove.unusual = FALSE)
+
+H3K27ac_masterpeak_005 <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_peak_q005/filt_macs2_peak_q005_H3k27ac_all_merged.bed", remove.unusual = FALSE)
+
+master_peak_width_H3K27ac <- data_frame(peak_width=width(H3K27ac_masterpeak_01),histone="H3K27ac",qval="0.01") %>%
+  rbind(data_frame(peak_width=width(H3K27ac_masterpeak_05),histone="H3K27ac",qval="0.05")) %>%
+  rbind(data_frame(peak_width=width(H3K27ac_masterpeak_005),histone="H3K27ac",qval="0.005"))
+
+master_peak_width_H3K27ac %>% 
+   mutate(qval=factor(qval, levels =c("0.05","0.01","0.005"))) %>% 
+   ggplot(.,aes(x=qval, y = peak_width, fill = qval))+
+  geom_violin()+
+    # scale_y_continuous(trans = "log", breaks = c(400, 3000, 22000)) +
+    theme_bw(base_size = 18) +
+    ylab("Width of Peaks") +
+    xlab("")+
+  ggtitle("Master Peak list widths for H3K27ac")
+```
+```{r}
+H3K27ac_counts_raw_05 <- count_H3K27ac_05 %>% 
+  dplyr::select(Geneid,`3_VEH_24r_H3K27ac`:`3_DOX_24r_H3K27ac`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+H3K27ac_counts_raw_01 <- count_H3K27ac_01 %>% 
+  dplyr::select(Geneid,`3_VEH_24r_H3K27ac`:`3_DOX_24r_H3K27ac`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+H3K27ac_counts_raw_005 <- count_H3K27ac_005 %>% 
+  dplyr::select(Geneid,`3_VEH_24r_H3K27ac`:`3_DOX_24r_H3K27ac`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+```
+
+
+```{r log2cpm transform}
+Plot_cpm_counts(H3K27ac_counts_raw_05,"H3K27ac_05")
+Plot_cpm_counts(H3K27ac_counts_raw_01,"H3K27ac_01")
+Plot_cpm_counts(H3K27ac_counts_raw_005,"H3K27ac_005")
+
+
+```
+
+
+
+#### H3K27me3 info
+
+```{r H3K27me3 loading files, message=FALSE, warning=FALSE}
+
+peak_count_H3K27me3_05 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_peak_q05/peak_count_q05.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.broadPeak","",X2)) %>% 
+    mutate(histone="H3K27me3") %>% 
+  mutate(qval="0.05")
+peak_count_H3K27me3_01 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_peak_q01/peak_count_q01.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.broadPeak","",X2)) %>% 
+    mutate(histone="H3K27me3") %>% 
+  mutate(qval="0.01")
+peak_count_H3K27me3_005 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_peak_q005/peak_count_q005.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.broadPeak","",X2)) %>% 
+    mutate(histone="H3K27me3") %>% 
+  mutate(qval="0.005")
+### Count matrices for each
+count_H3K27me3_05 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/noM_count_H3K27me3_macs2_peak_q05.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+
+count_H3K27me3_01 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/noM_count_H3K27me3_macs2_peak_q01.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+
+count_H3K27me3_005 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/noM_count_H3K27me3_macs2_peak_q005.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 1)
+##contains the summary of reads that mapped to the peak file and those that did not
+summary_H3K27me3_05 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/noM_count_H3K27me3_macs2_peak_q05.txt.summary", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE)
+summary_H3K27me3_01 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/noM_count_H3K27me3_macs2_peak_q01.txt.summary", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE)
+summary_H3K27me3_005 <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/noM_count_H3K27me3_macs2_peak_q005.txt.summary", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE)
+
+rename_list_k27me3 <- sampleinfo %>% 
+  mutate(stem= "_noM_final.bam") %>%
+  mutate(front="H3K27me3/") %>% 
+  mutate(oldname=paste0(front,library_ID,stem)) %>% 
+  mutate(newname=paste0(ind,"_",trt,"_",other_time,"_",histone_mark)) %>% 
+  dplyr::select(oldname,newname)
+  
+rename_vec_k27me3 <- setNames(rename_list_k27me3$newname, rename_list_k27me3$oldname)
+
+names(count_H3K27me3_05)[names(count_H3K27me3_05) %in% names(rename_vec_k27me3)] <- 
+  rename_vec_k27me3[names(count_H3K27me3_05)[names(count_H3K27me3_05) %in% names(rename_vec_k27me3)]]
+
+names(count_H3K27me3_01)[names(count_H3K27me3_01) %in% names(rename_vec_k27me3)] <- 
+  rename_vec_k27me3[names(count_H3K27me3_01)[names(count_H3K27me3_01) %in% names(rename_vec_k27me3)]]
+
+names(count_H3K27me3_005)[names(count_H3K27me3_005) %in% names(rename_vec_k27me3)] <- 
+  rename_vec_k27me3[names(count_H3K27me3_005)[names(count_H3K27me3_005) %in% names(rename_vec_k27me3)]]
+
+```
+
+
+```{r H3K27me3 peak counts}
+peak_count_H3K27me3_05 %>% 
+  rbind(peak_count_H3K27me3_01) %>% 
+  rbind(peak_count_H3K27me3_005) %>% 
+  mutate(X2=gsub("macs2_peak_q05/","", X2)) %>% 
+  mutate(X2=gsub("macs2_peak_q01/","", X2)) %>% 
+    mutate(X2=gsub("macs2_peak_q005/","", X2)) %>% 
+  mutate(qval=factor(qval, levels =c("0.05","0.01","0.005"))) %>% 
+   group_by(qval) %>% 
+  mutate(median_X1 = median(X1)) %>%  # Calculate the median for each qval group
+  ungroup() %>% 
+  ggplot(., aes(x=X2,y=X1, group()))+
+  geom_point(aes(color=qval))+
+  geom_path(aes(group = qval, color = qval), size = 1, linetype = "solid") +
+  geom_hline(aes(yintercept = median_X1, color = qval), linetype = "dashed", size = 1) +
+  ylab("Count of total peaks")+
+  xlab("samples")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ggtitle("Number of called peaks by file")
+
+```
+```{r more H3k27me3 things}
+
+H3K27me3_masterpeak_05 <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_peak_q05/filt_macs2_peak_q05_H3k27me3_all_merged.bed", remove.unusual = FALSE)
+
+H3K27me3_masterpeak_01 <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_peak_q01/filt_macs2_peak_q01_H3k27me3_all_merged.bed", remove.unusual = FALSE)
+
+H3K27ac_masterpeak_005 <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_peak_q005/filt_macs2_peak_q005_H3k27me3_all_merged.bed", remove.unusual = FALSE)
+
+master_peak_width_H3K27me3 <- data_frame(peak_width=width(H3K27me3_masterpeak_01),histone="H3K27me3",qval="0.01") %>%
+  rbind(data_frame(peak_width=width(H3K27me3_masterpeak_05),histone="H3K27me3",qval="0.05")) %>%
+  rbind(data_frame(peak_width=width(H3K27ac_masterpeak_005),histone="H3K27me3",qval="0.005"))
+
+master_peak_width_H3K27me3 %>% 
+   mutate(qval=factor(qval, levels =c("0.05","0.01","0.005"))) %>% 
+   ggplot(.,aes(x=qval, y = peak_width, fill = qval))+
+  geom_violin()+
+    # scale_y_continuous(trans = "log", breaks = c(400, 3000, 22000)) +
+    theme_bw(base_size = 18) +
+    ylab("Width of Peaks") +
+    xlab("")+
+  ggtitle("Master Peak list widths for H3K27me3")
+
+```
+
+```{r}
+H3K27me3_counts_raw_05 <- count_H3K27me3_05 %>% 
+  dplyr::select(Geneid,`1_VEH_24t_H3K27me3`:`5_VEH_24r_H3K27me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+
+H3K27me3_counts_raw_01 <- count_H3K27me3_01 %>% 
+  dplyr::select(Geneid,`1_VEH_24t_H3K27me3`:`5_VEH_24r_H3K27me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+
+H3K27me3_counts_raw_005 <- count_H3K27me3_005 %>% 
+  dplyr::select(Geneid,`1_VEH_24t_H3K27me3`:`5_VEH_24r_H3K27me3`) %>% 
+  column_to_rownames("Geneid") %>% 
+  as.matrix()
+```
+
+
+```{r log2cpm transform h3k27me3}
+Plot_cpm_counts(H3K27me3_counts_raw_05,"H3K27me3_05")
+Plot_cpm_counts(H3K27me3_counts_raw_01,"H3K27me3_01")
+Plot_cpm_counts(H3K27me3_counts_raw_005,"H3K27me3_005")
+
+
+```
