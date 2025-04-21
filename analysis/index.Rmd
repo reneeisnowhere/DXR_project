@@ -19,12 +19,17 @@ editor_options:
   Fragment analysis, lengths, peak numbers and peak widths,  
   Examination of Peak count across histones, treatment, and time  
   Histone heatmaps, filtered and unfiltered (by counts) log2cpm  
-  FRIPs with masterpeak lists and some visulization of Peak widths before and after MT reads.
+  FRIPs with masterpeak lists and some visualization of Peak widths before and after MT reads.
   
 ### Prelim-PCA analysis 
 #### [click here for PCA-prelim](https://reneeisnowhere.github.io/DXR_project/initial_pca_analysis.html)
 
+
 This has log2cpm histograms and PCA plots (working on the PC1 and PC2 dataframes)
+
+### Prelim Peak Thresholding
+[click here for Thresholding analysis](https://reneeisnowhere.github.io/DXR_project/Thresholding.html)
+Warning, the me3 broadPeak threshold calls were incorrect
 
 [click here for Super-master heatmap of all peak types](https://reneeisnowhere.github.io/DXR_project/first_all_hist_peaks.html)
   
