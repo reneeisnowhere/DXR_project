@@ -213,7 +213,7 @@ peak_count_H3K27ac_05 %>%
   xlab("samples")+
   theme_bw()+
   theme(axis.text.x=element_text(vjust = .2,angle=90))+
-  ggtitle("Number of called peaks by file")
+  ggtitle("Number of called peaks by file H3K27ac")
 
 ```
 ### Peak width by q value
@@ -686,9 +686,471 @@ Plot_cpm_counts(H3K9me3_counts_raw_005,"H3K9me3_005")
 
 ```
 
-Thresholding and FRIP
+### Thresholding and FRIP
 
 ```{r}
 q05_first_frip_indv_call <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/q05_first_frip_indv_call.tsv",delim = "\t", escape_double = FALSE,trim_ws = TRUE)
+
+
+q05_first_frip_indv_call %>% 
+  dplyr::filter(Histone=="H3K27ac") %>% 
+  ggplot(., aes(x=Sample, y=FRiP)) +
+  geom_col()+
+  ggtitle("Individual file Frip by Histone H3K27ac, q=0.05")+
+  # xlab("samples")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))
+
+q05_first_frip_indv_call %>% 
+  dplyr::filter(Histone=="H3K27me3") %>% 
+  ggplot(., aes(x=Sample, y=FRiP)) +
+  geom_col()+
+  ggtitle("Individual file Frip by Histone H3K27me3, q=0.05")+
+  # xlab("samples")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))
+q05_first_frip_indv_call %>% 
+  dplyr::filter(Histone=="H3K36me3") %>% 
+  ggplot(., aes(x=Sample, y=FRiP)) +
+  geom_col()+
+  ggtitle("Individual file Frip by Histone H3K36me3, q=0.05")+
+  # xlab("samples")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))
+q05_first_frip_indv_call %>% 
+  dplyr::filter(Histone=="H3K9me3") %>% 
+  ggplot(., aes(x=Sample, y=FRiP)) +
+  geom_col()+
+  ggtitle("Individual file Frip by Histone H3K9me3, q=0.05")+
+  # xlab("samples")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))
+  
+```
+
+#### H3K27ac llocal and nolambda
+```{r}
+frip_llocal20k_nolambda <- read_delim("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/Frip_files/frip_llocal20k_nolambda_detailed_results.tsv", 
+     delim = "\t", escape_double = FALSE, 
+     trim_ws = TRUE)
+
+frip_llocal20k_nolambda %>% 
+  dplyr::rename("call_type"="Total_Reads",
+                "Tot_Read"= "Reads_in_Peaks") %>%
+  separate_wider_delim(.,FRiP, names = c("Frag_in_peaks","Frip"),delim="\t") %>% 
+  mutate(Frag_in_peaks=as.numeric(Frag_in_peaks),Frip=as.numeric(Frip)) %>% 
+  mutate(call_type=factor(call_type, levels = c("macs2_nolambda_q05", "macs2_nolambda_q01","macs2_llocal20k_q05", "macs2_llocal20k_q01"))) %>% 
+  dplyr::filter(Histone == "H3K27ac") %>% 
+   group_by(call_type) %>% 
+  mutate(median_Frip = median(Frip)) %>%  # Calculate the median for each qval group
+  ungroup() %>% 
+  ggplot(., aes(x=Sample,y=Frip))+
+  geom_point(aes(color=call_type))+
+  geom_path(aes(group = call_type, color = call_type), size = 1, linetype = "solid") +
+  geom_hline(aes(yintercept = median_Frip, color = call_type), linetype = "dashed", size = 1)+
+  ggtitle("Individual file Frip by Histone H3K27ac")+
+  # xlab("samples")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))
+  
+
+peak_count_nolambda_H3K27ac_05 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_nolambda_q05/peak_count_nolambda_q05.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.narrowPeak","",X2)) %>% 
+    mutate(histone="H3K27ac",type="nolambda") %>% 
+  mutate(qval="0.05")
+peak_count_nolambda_H3K27ac_01 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_nolambda_q01/peak_count_nolambda_q01.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.narrowPeak","",X2)) %>% 
+    mutate(histone="H3K27ac",type="nolambda") %>% 
+  mutate(qval="0.01")
+
+peak_count_llocal20k_H3K27ac_05 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_llocal20k_q05/peak_count_llocal120k_q05.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.narrowPeak","",X2)) %>% 
+    mutate(histone="H3K27ac",type="llocal20k") %>% 
+  mutate(qval="0.05")
+peak_count_llocal20k_H3K27ac_01 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_llocal20k_q01/peak_count_llocal120k_q01.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.narrowPeak","",X2)) %>% 
+    mutate(histone="H3K27ac",type="llocal20k") %>% 
+  mutate(qval="0.01")
+
+
+
+####################older data for integration 
+
+firstPeak_H3K27ac <- peak_count_H3K27ac_05 %>% 
+  rbind(peak_count_H3K27ac_01) %>% 
+  rbind(peak_count_H3K27ac_005) %>% 
+  mutate(qval=factor(qval, levels =c("0.05","0.01","0.005"))) %>% 
+   group_by(qval) %>% 
+  mutate(median_X1 = median(X1)) %>%  # Calculate the median for each qval group
+  ungroup() %>% 
+  mutate(type="first_attempt")
+
+peak_count_nolambda_H3K27ac_05 %>% 
+  rbind(peak_count_nolambda_H3K27ac_01) %>% 
+  rbind(peak_count_llocal20k_H3K27ac_05) %>% 
+  rbind(peak_count_llocal20k_H3K27ac_01) %>% 
+  mutate(X2=gsub("macs2_nolambda_q05/","", X2)) %>% 
+  mutate(X2=gsub("macs2_nolambda_q01/","", X2))%>% 
+  mutate(X2=gsub("macs2_llocal20k_q01/","", X2)) %>% 
+  mutate(X2=gsub("macs2_llocal20k_q05/","", X2)) %>% 
+  mutate(qval=factor(qval, levels =c("0.05","0.01"))) %>% 
+   group_by(qval, type) %>% 
+  mutate(median_X1 = median(X1)) %>%  # Calculate the median for each qval group
+  ungroup() %>% 
+
+  ggplot(., aes(x=X2,y=X1, group = interaction(qval, type) ))+
+  geom_point(aes(color= interaction(qval, type) ))+
+  geom_path(aes(group = interaction(qval, type), color = interaction(qval, type)), size = 1, linetype = "solid") +
+  geom_point(data = firstPeak_H3K27ac, aes(x=X2,y=X1, group = interaction(qval, type)), color = "black") +      # manual black color for new data
+  geom_path(data = firstPeak_H3K27ac, aes(x=X2,y=X1, group = interaction(qval, type)), color = "black")  +       # manual black color for new data
+  geom_hline(aes(yintercept = median_X1, color = interaction(qval, type)), linetype = "dashed", size = 1) +
+  ylab("Count of total peaks")+
+  xlab("samples")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ggtitle("Number of called peaks by file H3K27ac")
+
+
+```
+
+
+
+
+
+#### H3K9me3 llocal and nolambda
+```{r}
+frip_llocal20k_nolambda %>% 
+  dplyr::rename("call_type"="Total_Reads",
+                "Tot_Read"= "Reads_in_Peaks") %>%
+  separate_wider_delim(.,FRiP, names = c("Frag_in_peaks","Frip"),delim="\t") %>% 
+  mutate(Frag_in_peaks=as.numeric(Frag_in_peaks),Frip=as.numeric(Frip)) %>% 
+  mutate(call_type=factor(call_type, levels = c("macs2_nolambda_q05", "macs2_nolambda_q01","macs2_llocal20k_q05", "macs2_llocal20k_q01"))) %>% 
+  dplyr::filter(Histone == "H3K9me3") %>% 
+   group_by(call_type) %>% 
+  mutate(median_Frip = median(Frip)) %>%  # Calculate the median for each qval group
+  ungroup() %>% 
+  ggplot(., aes(x=Sample,y=Frip))+
+  geom_point(aes(color=call_type))+
+  geom_path(aes(group = call_type, color = call_type), size = 1, linetype = "solid") +
+  geom_hline(aes(yintercept = median_Frip, color = call_type), linetype = "dashed", size = 1)+
+  ggtitle("Individual file Frip by Histone H3K9me3")+
+  # xlab("samples")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))
+  
+
+peak_count_nolambda_H3K9me3_05 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K9me3/macs2_nolambda_q05/peak_count_nolambda_q05.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.narrowPeak","",X2)) %>% 
+    mutate(histone="H3K9me3", type="nolambda") %>% 
+  mutate(qval="0.05")
+peak_count_nolambda_H3K9me3_01 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K9me3/macs2_nolambda_q01/peak_count_nolambda_q01.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.narrowPeak","",X2)) %>% 
+    mutate(histone="H3K9me3",type = "nolambda") %>% 
+  mutate(qval="0.01")
+
+peak_count_llocal20k_H3K9me3_05 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K9me3/macs2_llocal20k_q05/peak_count_llocal120k_q05.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.narrowPeak","",X2)) %>% 
+    mutate(histone="H3K9me3",type = "llocal20k") %>% 
+  mutate(qval="0.05")
+peak_count_llocal20k_H3K9me3_01 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K9me3/macs2_llocal20k_q01/peak_count_llocal120k_q01.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.narrowPeak","",X2)) %>% 
+    mutate(histone="H3K9me3", type = "llocal20k") %>% 
+  
+  mutate(qval="0.01")
+
+
+
+peak_count_nolambda_H3K9me3_05 %>% 
+  rbind(peak_count_nolambda_H3K9me3_01) %>% 
+  rbind(peak_count_llocal20k_H3K9me3_05) %>% 
+  rbind(peak_count_llocal20k_H3K9me3_01) %>% 
+  mutate(X2=gsub("macs2_nolambda_q05/","", X2)) %>% 
+  mutate(X2=gsub("macs2_nolambda_q01/","", X2))%>% 
+  mutate(X2=gsub("macs2_llocal20k_q01/","", X2)) %>% 
+  mutate(X2=gsub("macs2_llocal20k_q05/","", X2)) %>% 
+  mutate(qval=factor(qval, levels =c("0.05","0.01"))) %>% 
+   group_by(qval, type) %>% 
+  mutate(median_X1 = median(X1)) %>%  # Calculate the median for each qval group
+  ungroup() %>% 
+  ggplot(., aes(x=X2,y=X1, group = interaction(qval, type) ))+
+  geom_point(aes(color= interaction(qval, type) ))+
+  geom_path(aes(group = interaction(qval, type), color = interaction(qval, type)), size = 1, linetype = "solid") +
+  geom_hline(aes(yintercept = median_X1, color = interaction(qval, type)), linetype = "dashed", size = 1) +
+  ylab("Count of total peaks")+
+  xlab("samples")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ggtitle("Number of called peaks by file H3K9me3")
+
+
+```
+
+
+
+
+
+
+
+
+#### H3K27me3 llocal and nolambda
+```{r}
+frip_llocal20k_nolambda %>% 
+  dplyr::rename("call_type"="Total_Reads",
+                "Tot_Read"= "Reads_in_Peaks") %>%
+  separate_wider_delim(.,FRiP, names = c("Frag_in_peaks","Frip"),delim="\t") %>% 
+  mutate(Frag_in_peaks=as.numeric(Frag_in_peaks),Frip=as.numeric(Frip)) %>% 
+  mutate(call_type=factor(call_type, levels = c("macs2_nolambda_q05", "macs2_nolambda_q01","macs2_llocal20k_q05", "macs2_llocal20k_q01"))) %>% 
+  dplyr::filter(Histone == "H3K27me3") %>% 
+   group_by(call_type) %>% 
+  mutate(median_Frip = median(Frip)) %>%  # Calculate the median for each qval group
+  ungroup() %>% 
+  ggplot(., aes(x=Sample,y=Frip))+
+  geom_point(aes(color=call_type))+
+  geom_path(aes(group = call_type, color = call_type), size = 1, linetype = "solid") +
+  geom_hline(aes(yintercept = median_Frip, color = call_type), linetype = "dashed", size = 1)+
+  ggtitle("Individual file Frip by Histone H3K27me3")+
+  # xlab("samples")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))
+  
+
+peak_count_nolambda_H3K27me3_05 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_nolambda_q05/peak_count_nolambda_q05.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.broadPeak","",X2)) %>% 
+    mutate(histone="H3K27me3") %>% 
+  mutate(qval="0.05", type = "nolambda")
+
+
+peak_count_nolambda_H3K27me3_01 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_nolambda_q01/peak_count_nolambda_q01.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.broadPeak","",X2)) %>% 
+    mutate(histone="H3K27me3") %>% 
+  mutate(qval="0.01",type = "nolambda")
+
+peak_count_nolambda_bcq_H3K27me3_05 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_nolambda_bcq05/peak_count_nolambda_bcq05.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.broadPeak","",X2)) %>% 
+    mutate(histone="H3K27me3", type = "bcq") %>% 
+  mutate(qval="0.05")
+peak_count_nolambda_bcq_H3K27me3_01 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_nolambda_bcq01/peak_count_nolambda_bcq01.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.broadPeak","",X2)) %>% 
+    mutate(histone="H3K27me3",type = "bcq") %>% 
+  mutate(qval="0.01")
+
+
+
+
+
+peak_count_llocal20k_H3K27me3_05 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_llocal20k_q05/peak_count_llocal20k_q05.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.broadPeak","",X2)) %>% 
+    mutate(histone="H3K27me3") %>% 
+  mutate(qval="0.05",type = "llocal20k")
+
+peak_count_llocal20k_H3K27me3_01 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_llocal20k_q01/peak_count_llocal20k_q01.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.broadPeak","",X2)) %>% 
+    mutate(histone="H3K27me3") %>% 
+  mutate(qval="0.01",type = "llocal20k")
+
+################looking at previous values#########################
+firstPeak_H3K27me3 <- peak_count_H3K27me3_05 %>% 
+  rbind(peak_count_H3K27me3_01) %>% 
+  # rbind(peak_count_H3K27me3_005) %>% 
+  mutate(X2=gsub("macs2_nolambda_q05/","", X2)) %>% 
+  mutate(X2=gsub("macs2_peak_q01/","", X2)) %>% 
+    # mutate(X2=gsub("macs2_peak_q005/","", X2)) %>% 
+  mutate(qval=factor(qval, levels =c("0.05","0.01","0.005"))) %>% 
+   group_by(qval) %>% 
+  mutate(median_X1 = median(X1), type = "first_run") %>%  # Calculate the median for each qval group
+  ungroup() 
+
+
+peak_count_nolambda_H3K27me3_05 %>% 
+  rbind(peak_count_nolambda_H3K27me3_01) %>% 
+  rbind(peak_count_llocal20k_H3K27me3_05) %>% 
+  rbind(peak_count_llocal20k_H3K27me3_01) %>% 
+  rbind(peak_count_nolambda_bcq_H3K27me3_05) %>% 
+   rbind(peak_count_nolambda_bcq_H3K27me3_01) %>%
+  mutate(X2=gsub("macs2_nolambda_q05/","", X2)) %>% 
+  mutate(X2=gsub("macs2_nolambda_q01/","", X2))%>% 
+  mutate(X2=gsub("macs2_llocal20k_q01/","", X2)) %>% 
+  mutate(X2=gsub("macs2_llocal20k_q05/","", X2)) %>% 
+    mutate(X2=gsub("macs2_nolambda_bcq05/","", X2)) %>% 
+  mutate(X2=gsub("macs2_nolambda_bcq01/","", X2))%>%
+  mutate(qval=factor(qval, levels =c("0.05","0.01"))) %>% 
+   group_by(qval, type) %>% 
+  mutate(median_X1 = median(X1)) %>%  # Calculate the median for each qval group
+  ungroup() %>% 
+  ggplot(., aes(x=X2,y=X1, group = interaction(qval, type) ))+
+  geom_point(aes(color= interaction(qval, type) ))+
+  geom_path(aes(group = interaction(qval, type), color = interaction(qval, type)), size = 1, linetype = "solid") +
+  # geom_point(data = firstPeak_H3K27me3, aes(x=X2,y=X1, group = interaction(qval, type)), color = "black") +      # manual black color for new data
+  # geom_path(data = firstPeak_H3K27me3, aes(x=X2,y=X1, group = interaction(qval, type)), color = "black", linetype="dashed")  +       # manual black color for new data
+  
+  geom_hline(aes(yintercept = median_X1, color = interaction(qval, type)), linetype = "dashed", size = 1) +
+  ylab("Count of total peaks")+
+  xlab("samples")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ggtitle("Number of called peaks by file H3K27me3")
+
+```
+
+
+
+
+
+
+
+
+
+#### H3K36me3 llocal and nolambda
+```{r}
+frip_llocal20k_nolambda %>% 
+  dplyr::rename("call_type"="Total_Reads",
+                "Tot_Read"= "Reads_in_Peaks") %>%
+  separate_wider_delim(.,FRiP, names = c("Frag_in_peaks","Frip"),delim="\t") %>% 
+  mutate(Frag_in_peaks=as.numeric(Frag_in_peaks),Frip=as.numeric(Frip)) %>% 
+  mutate(call_type=factor(call_type, levels = c("macs2_nolambda_q05", "macs2_nolambda_q01","macs2_llocal20k_q05", "macs2_llocal20k_q01"))) %>% 
+  dplyr::filter(Histone == "H3K36me3") %>% 
+   group_by(call_type) %>% 
+  mutate(median_Frip = median(Frip)) %>%  # Calculate the median for each qval group
+  ungroup() %>% 
+  ggplot(., aes(x=Sample,y=Frip))+
+  geom_point(aes(color=call_type))+
+  geom_path(aes(group = call_type, color = call_type), size = 1, linetype = "solid") +
+  geom_hline(aes(yintercept = median_Frip, color = call_type), linetype = "dashed", size = 1)+
+  ggtitle("Individual file Frip by Histone H3K36me3")+
+  # xlab("samples")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))
+  
+
+peak_count_nolambda_H3K36me3_05 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K36me3/macs2_nolambda_q05/peak_count_nolambda_q05.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.broadPeak","",X2)) %>% 
+    mutate(histone="H3K36me3") %>% 
+  mutate(qval="0.05")
+peak_count_nolambda_H3K36me3_01 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K36me3/macs2_nolambda_q01/peak_count_nolambda_q01.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.broadPeak","",X2)) %>% 
+    mutate(histone="H3K36me3") %>% 
+  mutate(qval="0.01")
+
+
+peak_count_nolambda_bcq_H3K36me3_05 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K36me3/macs2_nolambda_bcq05/peak_count_nolambda_bcq05.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.broadPeak","",X2)) %>% 
+    mutate(histone="H3K36me3", type = "bcq") %>% 
+  mutate(qval="0.05")
+peak_count_nolambda_bcq_H3K36me3_01 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K36me3/macs2_nolambda_bcq01/peak_count_nolambda_bcq01.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.broadPeak","",X2)) %>% 
+    mutate(histone="H3K36me3",type = "bcq") %>% 
+  mutate(qval="0.01")
+
+peak_count_llocal20k_H3K36me3_05 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K36me3/macs2_llocal20k_q05/peak_count_llocal20k_q05.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.broadPeak","",X2)) %>% 
+    mutate(histone="H3K36me3") %>% 
+  mutate(qval="0.05")
+peak_count_llocal20k_H3K36me3_01 <- read_table("C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K36me3/macs2_llocal20k_q01/peak_count_llocal20k_q01.txt", 
+    col_names = FALSE) %>% 
+  dplyr::filter(X2 != "total") %>% 
+   mutate(X2=gsub("_noM_peaks.broadPeak","",X2)) %>% 
+    mutate(histone="H3K36me3") %>% 
+  mutate(qval="0.01")
+peak_count_nolambda_H3K36me3_05
+
+```
+
+#### Duplication rates and FRiP/peak calls
+```{r}
+sampleinfo <- read_delim("data/sampleinfo.txt", delim = "\t")
+multiqc_gene_stats_trim <- read_delim("data/multiqc_genral_stats_trim.txt",delim = "\t")
+multiqc_fastqc_trim <- read_delim("data/multiqc_fastqc_trim.txt",delim = "\t")
+    
+combo_trim_df <- multiqc_fastqc_trim %>% 
+ extract(., Sample, into = c("prefix","read"), regex= "(.+)_R(\\d+)", remove=FALSE) %>% 
+  mutate(read = paste0("R", read)) %>% 
+  left_join(., sampleinfo, by =c("prefix"="library_ID")) %>% 
+  left_join(., multiqc_gene_stats_trim, by = c("Sample" = "Sample")) %>% 
+  mutate(ind=factor(ind, levels = c("1","2","3","4","5"))) %>% 
+  mutate(trt=factor(trt, levels = c("VEH","5FU","DOX"))) %>% 
+  mutate(other_time=factor(other_time, levels=c("24t","24r","144r")))
+
+
+combo_trim_df %>% 
+  dplyr::filter(trt!="5FU"&histone_mark=="H3K27ac") %>% 
+  ggplot(., aes(x=interaction(read,prefix),y=`FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
+  geom_col(aes(fill=interaction(trt,other_time)))+
+  ggtitle("Duplication rates by sample for H3K27ac data")+
+  xlab("sample")+
+  ylab("Percent duplication")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))
+
+combo_trim_df %>% 
+  dplyr::filter(trt!="5FU"&histone_mark=="H3K27me3") %>% 
+  ggplot(., aes(x=interaction(read,prefix),y=`FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
+  geom_col(aes(fill=interaction(trt,other_time)))+
+  ggtitle("Duplication rates by sample for H3K27me3 data")+
+  xlab("sample")+
+  ylab("Percent duplication")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))
+  
+
+combo_trim_df %>% 
+  dplyr::filter(trt!="5FU"&histone_mark=="H3K36me3") %>% 
+  ggplot(., aes(x=interaction(read,prefix),y=`FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
+  geom_col(aes(fill=interaction(trt,other_time)))+
+  ggtitle("Duplication rates by sample for H3K36me3 data")+
+  xlab("sample")+
+  ylab("Percent duplication")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))
+
+combo_trim_df %>% 
+  dplyr::filter(trt!="5FU"&histone_mark=="H3K9me3") %>% 
+  ggplot(., aes(x=interaction(read,prefix),y=`FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
+  geom_col(aes(fill=interaction(trt,other_time)))+
+  ggtitle("Duplication rates by sample for H3K9me3 data")+
+  xlab("sample")+
+  ylab("Percent duplication")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))
+
+
+
 ```
 
