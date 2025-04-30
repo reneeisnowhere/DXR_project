@@ -47,7 +47,7 @@ library(GenomicRanges)
 Plot_cpm_counts <- function(df, histone){
   lcpm_df_rm <- cpm(df, log = TRUE)
   df_rm <- rowMeans(lcpm_df_rm)
-  df_filt_raw <- df[df_rm>0,]
+  df_filt_raw <- df[rowMeans(lcpm_df_rm)>0,]
 
 
   df_anno_mat <- data.frame(timeset=colnames(df)) %>% 
@@ -207,7 +207,7 @@ peak_count_H3K27ac_05 %>%
   ungroup() %>% 
   ggplot(., aes(x=X2,y=X1, group()))+
   geom_point(aes(color=qval))+
-  geom_path(aes(group = qval, color = qval), size = 1, linetype = "solid") +
+  geom_path(aes(group = qval, color = qval), linewidth = 1, linetype = "solid") +
   geom_hline(aes(yintercept = median_X1, color = qval), linetype = "dashed", size = 1) +
   ylab("Count of total peaks")+
   xlab("samples")+
@@ -238,6 +238,7 @@ master_peak_width_H3K27ac %>%
     ylab("Width of Peaks") +
     xlab("")+
   ggtitle("Master Peak list widths for H3K27ac")
+
 ```
 ```{r}
 H3K27ac_counts_raw_05 <- count_H3K27ac_05 %>% 
@@ -256,6 +257,7 @@ H3K27ac_counts_raw_005 <- count_H3K27ac_005 %>%
 
 
 ```{r log2cpm transform}
+
 Plot_cpm_counts(H3K27ac_counts_raw_05,"H3K27ac_05")
 Plot_cpm_counts(H3K27ac_counts_raw_01,"H3K27ac_01")
 Plot_cpm_counts(H3K27ac_counts_raw_005,"H3K27ac_005")
@@ -351,7 +353,6 @@ peak_count_H3K27me3_05 %>%
   theme_bw()+
   theme(axis.text.x=element_text(vjust = .2,angle=90))+
   ggtitle("Number of called peaks by file H3K27me3")
-
 ```
 ```{r more H3k27me3 things}
 
@@ -780,27 +781,30 @@ peak_count_llocal20k_H3K27ac_01 <- read_table("C:/Users/renee/Other_projects_dat
     mutate(histone="H3K27ac",type="llocal20k") %>% 
   mutate(qval="0.01")
 
-
+remove_5fu_list <- sampleinfo %>% 
+  dplyr::filter(trt=="5FU")
 
 ####################older data for integration 
 
 firstPeak_H3K27ac <- peak_count_H3K27ac_05 %>% 
-  rbind(peak_count_H3K27ac_01) %>% 
-  rbind(peak_count_H3K27ac_005) %>% 
+  bind_rows(peak_count_H3K27ac_01,
+            peak_count_H3K27ac_005) %>% 
   mutate(qval=factor(qval, levels =c("0.05","0.01","0.005"))) %>% 
    group_by(qval) %>% 
+  dplyr::filter(!X2 %in% remove_5fu_list$library_ID) %>%
   mutate(median_X1 = median(X1)) %>%  # Calculate the median for each qval group
   ungroup() %>% 
   mutate(type="first_attempt")
 
-peak_count_nolambda_H3K27ac_05 %>% 
-  rbind(peak_count_nolambda_H3K27ac_01) %>% 
-  rbind(peak_count_llocal20k_H3K27ac_05) %>% 
-  rbind(peak_count_llocal20k_H3K27ac_01) %>% 
+peak_count_nolambda_H3K27ac_05 %>%
+ bind_rows(peak_count_nolambda_H3K27ac_01,
+           peak_count_llocal20k_H3K27ac_05,
+           peak_count_llocal20k_H3K27ac_01) %>% 
   mutate(X2=gsub("macs2_nolambda_q05/","", X2)) %>% 
   mutate(X2=gsub("macs2_nolambda_q01/","", X2))%>% 
   mutate(X2=gsub("macs2_llocal20k_q01/","", X2)) %>% 
   mutate(X2=gsub("macs2_llocal20k_q05/","", X2)) %>% 
+  dplyr::filter(!X2 %in% remove_5fu_list$library_ID) %>% 
   mutate(qval=factor(qval, levels =c("0.05","0.01"))) %>% 
    group_by(qval, type) %>% 
   mutate(median_X1 = median(X1)) %>%  # Calculate the median for each qval group
@@ -809,18 +813,65 @@ peak_count_nolambda_H3K27ac_05 %>%
   ggplot(., aes(x=X2,y=X1, group = interaction(qval, type) ))+
   geom_point(aes(color= interaction(qval, type) ))+
   geom_path(aes(group = interaction(qval, type), color = interaction(qval, type)), size = 1, linetype = "solid") +
-  geom_point(data = firstPeak_H3K27ac, aes(x=X2,y=X1, group = interaction(qval, type)), color = "black") +      # manual black color for new data
-  geom_path(data = firstPeak_H3K27ac, aes(x=X2,y=X1, group = interaction(qval, type)), color = "black")  +       # manual black color for new data
+  geom_point(data = firstPeak_H3K27ac, aes(x=X2,y=X1, group = interaction(qval, type), linetype=qval), color = "black") +      # manual black color for new data
+  geom_path(data = firstPeak_H3K27ac, aes(x=X2,y=X1, group = interaction(qval, type), linetype = qval), color = "black")  +       # manual black color for new data
   geom_hline(aes(yintercept = median_X1, color = interaction(qval, type)), linetype = "dashed", size = 1) +
   ylab("Count of total peaks")+
   xlab("samples")+
   theme_bw()+
   theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_linetype_manual(values = c("0.05" = "solid",
+                                  "0.01" = "dashed",
+                                  "0.005" = "dotted"))+
   ggtitle("Number of called peaks by file H3K27ac")
 
 
 ```
 
+```{r peak width nolambda}
+
+H3K27ac_masterpeak_nolambda_05 <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_nolambda_q05/filt_macs2_nolambda_q05_H3k27ac_nobl_all_merged.bed", remove.unusual = FALSE)
+
+H3K27ac_masterpeak_nolambda_01 <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_nolambda_q01/filt_macs2_nolambda_q01_H3k27ac_nobl_all_merged.bed", remove.unusual = FALSE)
+
+H3K27ac_masterpeak_llocal20k_05 <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_llocal20k_q05/filt_macs2_llocal20k_q05_H3k27ac_nobl_all_merged.bed", remove.unusual = FALSE)
+
+H3K27ac_masterpeak_llocal20k_01 <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_llocal20k_q01/filt_macs2_llocal20k_q01_H3k27ac_nobl_all_merged.bed", remove.unusual = FALSE)
+
+master_peak_width_H3K27ac <- data_frame(peak_width=width(H3K27ac_masterpeak_01),histone="H3K27ac",qval="0.01", type="first_run") %>%
+  rbind(data_frame(peak_width=width(H3K27ac_masterpeak_05),histone="H3K27ac",qval="0.05",type="first_run")) %>%
+  rbind(data_frame(peak_width=width(H3K27ac_masterpeak_005),histone="H3K27ac",qval="0.005",type="first_run")) %>% 
+  rbind(data_frame(peak_width=width(H3K27ac_masterpeak_nolambda_05),histone="H3K27ac",qval="0.05",type="nolambda")) %>% 
+rbind(data_frame(peak_width=width(H3K27ac_masterpeak_nolambda_01),histone="H3K27ac",qval="0.01",type="nolambda")) %>% 
+rbind(data_frame(peak_width=width(H3K27ac_masterpeak_llocal20k_05),histone="H3K27ac",qval="0.05",type="llocal20k")) %>% 
+rbind(data_frame(peak_width=width(H3K27ac_masterpeak_llocal20k_01),histone="H3K27ac",qval="0.01",type="llocal20k"))
+
+master_peak_width_H3K27ac %>% 
+   mutate(qval=factor(qval, levels =c("0.05","0.01","0.005"))) %>% 
+   ggplot(.,aes(x=interaction(qval,type), y = peak_width, fill = interaction(qval,type)))+
+  geom_violin()+
+    # scale_y_continuous(trans = "log", breaks = c(400, 3000, 22000)) +
+    theme_bw(base_size = 18) +
+    ylab("Width of Peaks") +
+    xlab("")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ggtitle("Master Peak list widths for H3K27ac")
+
+master_peak_width_H3K27ac %>% 
+   mutate(qval=factor(qval, levels =c("0.05","0.01","0.005"))) %>% 
+   ggplot(.,aes(x=interaction(qval,type), y = peak_width, fill = interaction(qval,type)))+
+  geom_violin()+
+    # scale_y_continuous(trans = "log", breaks = c(400, 3000, 22000)) +
+    theme_bw(base_size = 18) +
+    ylab("Width of Peaks") +
+    xlab("")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ggtitle("Master Peak list widths for H3K27ac zoomed in")+
+  coord_cartesian(ylim=c(0,10000))
+
+```
 
 
 
@@ -980,8 +1031,11 @@ peak_count_llocal20k_H3K27me3_01 <- read_table("C:/Users/renee/Other_projects_da
 firstPeak_H3K27me3 <- peak_count_H3K27me3_05 %>% 
   rbind(peak_count_H3K27me3_01) %>% 
   # rbind(peak_count_H3K27me3_005) %>% 
+  mutate(X2=gsub("macs2_peak_q05/","", X2)) %>% 
   mutate(X2=gsub("macs2_nolambda_q05/","", X2)) %>% 
   mutate(X2=gsub("macs2_peak_q01/","", X2)) %>% 
+  dplyr::filter(!X2 %in% remove_5fu_list$library_ID) %>%
+  
     # mutate(X2=gsub("macs2_peak_q005/","", X2)) %>% 
   mutate(qval=factor(qval, levels =c("0.05","0.01","0.005"))) %>% 
    group_by(qval) %>% 
@@ -990,11 +1044,13 @@ firstPeak_H3K27me3 <- peak_count_H3K27me3_05 %>%
 
 
 peak_count_nolambda_H3K27me3_05 %>% 
-  rbind(peak_count_nolambda_H3K27me3_01) %>% 
-  rbind(peak_count_llocal20k_H3K27me3_05) %>% 
-  rbind(peak_count_llocal20k_H3K27me3_01) %>% 
-  rbind(peak_count_nolambda_bcq_H3K27me3_05) %>% 
-   rbind(peak_count_nolambda_bcq_H3K27me3_01) %>%
+  bind_rows(peak_count_llocal20k_H3K27me3_05,
+            peak_count_nolambda_bcq_H3K27me3_05) %>% 
+  # rbind(peak_count_nolambda_H3K27me3_01) %>% 
+  # rbind(peak_count_llocal20k_H3K27me3_05) %>% 
+  # rbind(peak_count_llocal20k_H3K27me3_01) %>% 
+  # rbind(peak_count_nolambda_bcq_H3K27me3_05) %>% 
+  #  rbind(peak_count_nolambda_bcq_H3K27me3_01) %>%
   mutate(X2=gsub("macs2_nolambda_q05/","", X2)) %>% 
   mutate(X2=gsub("macs2_nolambda_q01/","", X2))%>% 
   mutate(X2=gsub("macs2_llocal20k_q01/","", X2)) %>% 
@@ -1008,8 +1064,8 @@ peak_count_nolambda_H3K27me3_05 %>%
   ggplot(., aes(x=X2,y=X1, group = interaction(qval, type) ))+
   geom_point(aes(color= interaction(qval, type) ))+
   geom_path(aes(group = interaction(qval, type), color = interaction(qval, type)), size = 1, linetype = "solid") +
-  # geom_point(data = firstPeak_H3K27me3, aes(x=X2,y=X1, group = interaction(qval, type)), color = "black") +      # manual black color for new data
-  # geom_path(data = firstPeak_H3K27me3, aes(x=X2,y=X1, group = interaction(qval, type)), color = "black", linetype="dashed")  +       # manual black color for new data
+  geom_point(data = firstPeak_H3K27me3, aes(x=X2,y=X1, group = interaction(qval, type)), color = "black") +      # manual black color for new data
+  geom_path(data = firstPeak_H3K27me3, aes(x=X2,y=X1, group = interaction(qval, type)), color = "black", linetype="dashed")  +       # manual black color for new data
   
   geom_hline(aes(yintercept = median_X1, color = interaction(qval, type)), linetype = "dashed", size = 1) +
   ylab("Count of total peaks")+
@@ -1020,6 +1076,55 @@ peak_count_nolambda_H3K27me3_05 %>%
 
 ```
 
+```{r}
+H3K27me3_masterpeak_nolambda_05 <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_nolambda_q05/filt_macs2_nolambda_q05_H3k27me3_nobl_all_merged.bed", remove.unusual = FALSE)
+
+H3K27me3_masterpeak_nolambda_01 <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_nolambda_q01/filt_macs2_nolambda_q01_H3k27me3_nobl_all_merged.bed", remove.unusual = FALSE)
+
+H3K27ac_masterpeak_llocal20k_05 <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_llocal20k_q05/filt_macs2_llocal20k_q05_H3k27me3_nobl_all_merged.bed", remove.unusual = FALSE)
+
+H3K27ac_masterpeak_llocal20k_01 <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_llocal20k_q01/filt_macs2_llocal20k_q01_H3k27me3_nobl_all_merged.bed", remove.unusual = FALSE)
+
+H3K27me3_masterpeak_nolambda_bcq05 <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_nolambda_bcq05/filt_macs2_nolambda_bcq05_H3k27me3_nobl_all_merged.bed", remove.unusual = FALSE)
+
+H3K27me3_masterpeak_nolambda_bcq01 <- readBed(file="C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_nolambda_bcq01/filt_macs2_nolambda_bcq01_H3k27me3_nobl_all_merged.bed", remove.unusual = FALSE)
+
+
+master_peak_width_H3K27me3 <-
+  data_frame(peak_width=width(H3K27me3_masterpeak_01),histone="H3K27me3",qval="0.01",type="first_run") %>%
+  rbind(data_frame(peak_width=width(H3K27me3_masterpeak_05),histone="H3K27me3",qval="0.05",type="first_run")) %>%
+  rbind(data_frame(peak_width=width(H3K27ac_masterpeak_005),histone="H3K27me3",qval="0.005",type="first_run")) %>% 
+  rbind(data_frame(peak_width=width(H3K27me3_masterpeak_nolambda_01),histone="H3K27me3",qval="0.01",type="nolambda")) %>%
+  rbind(data_frame(peak_width=width(H3K27me3_masterpeak_nolambda_05),histone="H3K27me3",qval="0.05",type="nolambda")) %>%
+  rbind(data_frame(peak_width=width(H3K27ac_masterpeak_llocal20k_01),histone="H3K27me3",qval="0.01",type="llocal20k")) %>%
+  rbind(data_frame(peak_width=width(H3K27ac_masterpeak_llocal20k_05),histone="H3K27me3",qval="0.05",type="llocal20k")) %>%
+  rbind(data_frame(peak_width=width(H3K27me3_masterpeak_nolambda_bcq01),histone="H3K27me3",qval="0.01",type="nolambda_bcq")) %>%
+  rbind(data_frame(peak_width=width(H3K27me3_masterpeak_nolambda_bcq05),histone="H3K27me3",qval="0.05",type="nolambda_bcq"))
+
+master_peak_width_H3K27me3 %>% 
+   mutate(qval=factor(qval, levels =c("0.05","0.01","0.005"))) %>% 
+   ggplot(.,aes(x=interaction(qval,type), y = peak_width, fill = interaction(qval,type)))+
+  geom_violin()+
+    # scale_y_continuous(trans = "log", breaks = c(400, 3000, 22000)) +
+    theme_bw(base_size = 18) +
+    ylab("Width of Peaks") +
+    xlab("")+
+    theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ggtitle("Master Peak list widths for H3K27me3")
+
+
+master_peak_width_H3K27me3 %>% 
+   mutate(qval=factor(qval, levels =c("0.05","0.01","0.005"))) %>% 
+   ggplot(.,aes(x=interaction(qval,type), y = peak_width, fill = interaction(qval,type)))+
+  geom_violin()+
+    # scale_y_continuous(trans = "log", breaks = c(400, 3000, 22000)) +
+    theme_bw(base_size = 18) +
+    ylab("Width of Peaks") +
+    xlab("")+
+    theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ggtitle("Master Peak list widths \nfor H3K27me3 zoomed in")+
+  coord_cartesian(ylim=c(0,10000))
+```
 
 
 
@@ -1089,7 +1194,7 @@ peak_count_llocal20k_H3K36me3_01 <- read_table("C:/Users/renee/Other_projects_da
    mutate(X2=gsub("_noM_peaks.broadPeak","",X2)) %>% 
     mutate(histone="H3K36me3") %>% 
   mutate(qval="0.01")
-peak_count_nolambda_H3K36me3_05
+# peak_count_nolambda_H3K36me3_05
 
 ```
 
