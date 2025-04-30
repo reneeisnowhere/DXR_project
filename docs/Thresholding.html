@@ -390,7 +390,7 @@ class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2025-04-28
+<strong>Last updated:</strong> 2025-04-30
 </p>
 <p>
 <strong>Checks:</strong> <span
@@ -521,15 +521,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomreneeisnowhereDXRprojecttreea08ec5ba3247fe9e14a6bc2d349e5df6c9c08064targetblanka08ec5ba">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomreneeisnowhereDXRprojecttree831654a8077c49fa1c666bde4ed35bf40404f565targetblank831654aa">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/reneeisnowhere/DXR_project/tree/a08ec5ba3247fe9e14a6bc2d349e5df6c9c08064" target="_blank">a08ec5b</a>
+<a href="https://github.com/reneeisnowhere/DXR_project/tree/831654a8077c49fa1c666bde4ed35bf40404f565" target="_blank">831654a</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomreneeisnowhereDXRprojecttreea08ec5ba3247fe9e14a6bc2d349e5df6c9c08064targetblanka08ec5ba"
+id="strongRepositoryversionstrongahrefhttpsgithubcomreneeisnowhereDXRprojecttree831654a8077c49fa1c666bde4ed35bf40404f565targetblank831654aa"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -539,7 +539,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/reneeisnowhere/DXR_project/tree/a08ec5ba3247fe9e14a6bc2d349e5df6c9c08064" target="_blank">a08ec5b</a>.
+<a href="https://github.com/reneeisnowhere/DXR_project/tree/831654a8077c49fa1c666bde4ed35bf40404f565" target="_blank">831654a</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -618,6 +618,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/reneeisnowhere/DXR_project/blob/831654a8077c49fa1c666bde4ed35bf40404f565/analysis/Thresholding.Rmd" target="_blank">831654a</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-30
+</td>
+<td>
+updates
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/reneeisnowhere/DXR_project/21e0652c4c2fc84e7c14be36955eea30f787454e/docs/Thresholding.html" target="_blank">21e0652</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-28
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -736,7 +770,7 @@ library(GenomicRanges)</code></pre>
 <pre class="r"><code>Plot_cpm_counts &lt;- function(df, histone){
   lcpm_df_rm &lt;- cpm(df, log = TRUE)
   df_rm &lt;- rowMeans(lcpm_df_rm)
-  df_filt_raw &lt;- df[df_rm&gt;0,]
+  df_filt_raw &lt;- df[rowMeans(lcpm_df_rm)&gt;0,]
 
 
   df_anno_mat &lt;- data.frame(timeset=colnames(df)) %&gt;% 
@@ -886,7 +920,7 @@ names(count_H3K27ac_005)[names(count_H3K27ac_005) %in% names(rename_vec)] &lt;- 
   ungroup() %&gt;% 
   ggplot(., aes(x=X2,y=X1, group()))+
   geom_point(aes(color=qval))+
-  geom_path(aes(group = qval, color = qval), size = 1, linetype = &quot;solid&quot;) +
+  geom_path(aes(group = qval, color = qval), linewidth = 1, linetype = &quot;solid&quot;) +
   geom_hline(aes(yintercept = median_X1, color = qval), linetype = &quot;dashed&quot;, size = 1) +
   ylab(&quot;Count of total peaks&quot;)+
   xlab(&quot;samples&quot;)+
@@ -916,6 +950,17 @@ Date
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/DXR_project/blob/21e0652c4c2fc84e7c14be36955eea30f787454e/docs/figure/Thresholding.Rmd/H3K27ac peak counts-1.png" target="_blank">21e0652</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-28
+</td>
+</tr>
 <tr>
 <td>
 <a href="https://github.com/reneeisnowhere/DXR_project/blob/75809ebc1b22d2f84d6a37fa845bd35ed72763d4/docs/figure/Thresholding.Rmd/H3K27ac peak counts-1.png" target="_blank">75809eb</a>
@@ -3575,6 +3620,43 @@ q05_first_frip_indv_call %&gt;%
   theme_bw()+
   theme(axis.text.x=element_text(vjust = .2,angle=90))</code></pre>
 <p><img src="figure/Thresholding.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-1">
+Past versions of unnamed-chunk-6-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-6-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/DXR_project/blob/21e0652c4c2fc84e7c14be36955eea30f787454e/docs/figure/Thresholding.Rmd/unnamed-chunk-6-1.png" target="_blank">21e0652</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-28
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>q05_first_frip_indv_call %&gt;% 
   dplyr::filter(Histone==&quot;H3K27me3&quot;) %&gt;% 
   ggplot(., aes(x=Sample, y=FRiP)) +
@@ -3584,6 +3666,43 @@ q05_first_frip_indv_call %&gt;%
   theme_bw()+
   theme(axis.text.x=element_text(vjust = .2,angle=90))</code></pre>
 <p><img src="figure/Thresholding.Rmd/unnamed-chunk-6-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-2">
+Past versions of unnamed-chunk-6-2.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-6-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/DXR_project/blob/21e0652c4c2fc84e7c14be36955eea30f787454e/docs/figure/Thresholding.Rmd/unnamed-chunk-6-2.png" target="_blank">21e0652</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-28
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>q05_first_frip_indv_call %&gt;% 
   dplyr::filter(Histone==&quot;H3K36me3&quot;) %&gt;% 
   ggplot(., aes(x=Sample, y=FRiP)) +
@@ -3593,6 +3712,43 @@ q05_first_frip_indv_call %&gt;%
   theme_bw()+
   theme(axis.text.x=element_text(vjust = .2,angle=90))</code></pre>
 <p><img src="figure/Thresholding.Rmd/unnamed-chunk-6-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-3">
+Past versions of unnamed-chunk-6-3.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-6-3" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/DXR_project/blob/21e0652c4c2fc84e7c14be36955eea30f787454e/docs/figure/Thresholding.Rmd/unnamed-chunk-6-3.png" target="_blank">21e0652</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-28
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>q05_first_frip_indv_call %&gt;% 
   dplyr::filter(Histone==&quot;H3K9me3&quot;) %&gt;% 
   ggplot(., aes(x=Sample, y=FRiP)) +
@@ -3602,6 +3758,43 @@ q05_first_frip_indv_call %&gt;%
   theme_bw()+
   theme(axis.text.x=element_text(vjust = .2,angle=90))</code></pre>
 <p><img src="figure/Thresholding.Rmd/unnamed-chunk-6-4.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-4">
+Past versions of unnamed-chunk-6-4.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-6-4" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/DXR_project/blob/21e0652c4c2fc84e7c14be36955eea30f787454e/docs/figure/Thresholding.Rmd/unnamed-chunk-6-4.png" target="_blank">21e0652</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-28
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <div id="h3k27ac-llocal-and-nolambda" class="section level4">
 <h4>H3K27ac llocal and nolambda</h4>
 <pre class="r"><code>frip_llocal20k_nolambda &lt;- read_delim(&quot;C:/Users/renee/Other_projects_data/DXR_data/prelim-data/Frip_files/frip_llocal20k_nolambda_detailed_results.tsv&quot;, 
@@ -3627,6 +3820,43 @@ frip_llocal20k_nolambda %&gt;%
   theme_bw()+
   theme(axis.text.x=element_text(vjust = .2,angle=90))</code></pre>
 <p><img src="figure/Thresholding.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-1">
+Past versions of unnamed-chunk-7-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-7-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/DXR_project/blob/21e0652c4c2fc84e7c14be36955eea30f787454e/docs/figure/Thresholding.Rmd/unnamed-chunk-7-1.png" target="_blank">21e0652</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-28
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>peak_count_nolambda_H3K27ac_05 &lt;- read_table(&quot;C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_nolambda_q05/peak_count_nolambda_q05.txt&quot;, 
     col_names = FALSE) %&gt;% 
   dplyr::filter(X2 != &quot;total&quot;) %&gt;% 
@@ -3653,27 +3883,30 @@ peak_count_llocal20k_H3K27ac_01 &lt;- read_table(&quot;C:/Users/renee/Other_proj
     mutate(histone=&quot;H3K27ac&quot;,type=&quot;llocal20k&quot;) %&gt;% 
   mutate(qval=&quot;0.01&quot;)
 
-
+remove_5fu_list &lt;- sampleinfo %&gt;% 
+  dplyr::filter(trt==&quot;5FU&quot;)
 
 ####################older data for integration 
 
 firstPeak_H3K27ac &lt;- peak_count_H3K27ac_05 %&gt;% 
-  rbind(peak_count_H3K27ac_01) %&gt;% 
-  rbind(peak_count_H3K27ac_005) %&gt;% 
+  bind_rows(peak_count_H3K27ac_01,
+            peak_count_H3K27ac_005) %&gt;% 
   mutate(qval=factor(qval, levels =c(&quot;0.05&quot;,&quot;0.01&quot;,&quot;0.005&quot;))) %&gt;% 
    group_by(qval) %&gt;% 
+  dplyr::filter(!X2 %in% remove_5fu_list$library_ID) %&gt;%
   mutate(median_X1 = median(X1)) %&gt;%  # Calculate the median for each qval group
   ungroup() %&gt;% 
   mutate(type=&quot;first_attempt&quot;)
 
-peak_count_nolambda_H3K27ac_05 %&gt;% 
-  rbind(peak_count_nolambda_H3K27ac_01) %&gt;% 
-  rbind(peak_count_llocal20k_H3K27ac_05) %&gt;% 
-  rbind(peak_count_llocal20k_H3K27ac_01) %&gt;% 
+peak_count_nolambda_H3K27ac_05 %&gt;%
+ bind_rows(peak_count_nolambda_H3K27ac_01,
+           peak_count_llocal20k_H3K27ac_05,
+           peak_count_llocal20k_H3K27ac_01) %&gt;% 
   mutate(X2=gsub(&quot;macs2_nolambda_q05/&quot;,&quot;&quot;, X2)) %&gt;% 
   mutate(X2=gsub(&quot;macs2_nolambda_q01/&quot;,&quot;&quot;, X2))%&gt;% 
   mutate(X2=gsub(&quot;macs2_llocal20k_q01/&quot;,&quot;&quot;, X2)) %&gt;% 
   mutate(X2=gsub(&quot;macs2_llocal20k_q05/&quot;,&quot;&quot;, X2)) %&gt;% 
+  dplyr::filter(!X2 %in% remove_5fu_list$library_ID) %&gt;% 
   mutate(qval=factor(qval, levels =c(&quot;0.05&quot;,&quot;0.01&quot;))) %&gt;% 
    group_by(qval, type) %&gt;% 
   mutate(median_X1 = median(X1)) %&gt;%  # Calculate the median for each qval group
@@ -3682,15 +3915,96 @@ peak_count_nolambda_H3K27ac_05 %&gt;%
   ggplot(., aes(x=X2,y=X1, group = interaction(qval, type) ))+
   geom_point(aes(color= interaction(qval, type) ))+
   geom_path(aes(group = interaction(qval, type), color = interaction(qval, type)), size = 1, linetype = &quot;solid&quot;) +
-  geom_point(data = firstPeak_H3K27ac, aes(x=X2,y=X1, group = interaction(qval, type)), color = &quot;black&quot;) +      # manual black color for new data
-  geom_path(data = firstPeak_H3K27ac, aes(x=X2,y=X1, group = interaction(qval, type)), color = &quot;black&quot;)  +       # manual black color for new data
+  geom_point(data = firstPeak_H3K27ac, aes(x=X2,y=X1, group = interaction(qval, type), linetype=qval), color = &quot;black&quot;) +      # manual black color for new data
+  geom_path(data = firstPeak_H3K27ac, aes(x=X2,y=X1, group = interaction(qval, type), linetype = qval), color = &quot;black&quot;)  +       # manual black color for new data
   geom_hline(aes(yintercept = median_X1, color = interaction(qval, type)), linetype = &quot;dashed&quot;, size = 1) +
   ylab(&quot;Count of total peaks&quot;)+
   xlab(&quot;samples&quot;)+
   theme_bw()+
   theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  scale_linetype_manual(values = c(&quot;0.05&quot; = &quot;solid&quot;,
+                                  &quot;0.01&quot; = &quot;dashed&quot;,
+                                  &quot;0.005&quot; = &quot;dotted&quot;))+
   ggtitle(&quot;Number of called peaks by file H3K27ac&quot;)</code></pre>
 <p><img src="figure/Thresholding.Rmd/unnamed-chunk-7-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-2">
+Past versions of unnamed-chunk-7-2.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-7-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/DXR_project/blob/21e0652c4c2fc84e7c14be36955eea30f787454e/docs/figure/Thresholding.Rmd/unnamed-chunk-7-2.png" target="_blank">21e0652</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-28
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<pre class="r"><code>H3K27ac_masterpeak_nolambda_05 &lt;- readBed(file=&quot;C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_nolambda_q05/filt_macs2_nolambda_q05_H3k27ac_nobl_all_merged.bed&quot;, remove.unusual = FALSE)
+
+H3K27ac_masterpeak_nolambda_01 &lt;- readBed(file=&quot;C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_nolambda_q01/filt_macs2_nolambda_q01_H3k27ac_nobl_all_merged.bed&quot;, remove.unusual = FALSE)
+
+H3K27ac_masterpeak_llocal20k_05 &lt;- readBed(file=&quot;C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_llocal20k_q05/filt_macs2_llocal20k_q05_H3k27ac_nobl_all_merged.bed&quot;, remove.unusual = FALSE)
+
+H3K27ac_masterpeak_llocal20k_01 &lt;- readBed(file=&quot;C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27ac/macs2_llocal20k_q01/filt_macs2_llocal20k_q01_H3k27ac_nobl_all_merged.bed&quot;, remove.unusual = FALSE)
+
+master_peak_width_H3K27ac &lt;- data_frame(peak_width=width(H3K27ac_masterpeak_01),histone=&quot;H3K27ac&quot;,qval=&quot;0.01&quot;, type=&quot;first_run&quot;) %&gt;%
+  rbind(data_frame(peak_width=width(H3K27ac_masterpeak_05),histone=&quot;H3K27ac&quot;,qval=&quot;0.05&quot;,type=&quot;first_run&quot;)) %&gt;%
+  rbind(data_frame(peak_width=width(H3K27ac_masterpeak_005),histone=&quot;H3K27ac&quot;,qval=&quot;0.005&quot;,type=&quot;first_run&quot;)) %&gt;% 
+  rbind(data_frame(peak_width=width(H3K27ac_masterpeak_nolambda_05),histone=&quot;H3K27ac&quot;,qval=&quot;0.05&quot;,type=&quot;nolambda&quot;)) %&gt;% 
+rbind(data_frame(peak_width=width(H3K27ac_masterpeak_nolambda_01),histone=&quot;H3K27ac&quot;,qval=&quot;0.01&quot;,type=&quot;nolambda&quot;)) %&gt;% 
+rbind(data_frame(peak_width=width(H3K27ac_masterpeak_llocal20k_05),histone=&quot;H3K27ac&quot;,qval=&quot;0.05&quot;,type=&quot;llocal20k&quot;)) %&gt;% 
+rbind(data_frame(peak_width=width(H3K27ac_masterpeak_llocal20k_01),histone=&quot;H3K27ac&quot;,qval=&quot;0.01&quot;,type=&quot;llocal20k&quot;))
+
+master_peak_width_H3K27ac %&gt;% 
+   mutate(qval=factor(qval, levels =c(&quot;0.05&quot;,&quot;0.01&quot;,&quot;0.005&quot;))) %&gt;% 
+   ggplot(.,aes(x=interaction(qval,type), y = peak_width, fill = interaction(qval,type)))+
+  geom_violin()+
+    # scale_y_continuous(trans = &quot;log&quot;, breaks = c(400, 3000, 22000)) +
+    theme_bw(base_size = 18) +
+    ylab(&quot;Width of Peaks&quot;) +
+    xlab(&quot;&quot;)+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ggtitle(&quot;Master Peak list widths for H3K27ac&quot;)</code></pre>
+<p><img src="figure/Thresholding.Rmd/peak%20width%20nolambda-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>master_peak_width_H3K27ac %&gt;% 
+   mutate(qval=factor(qval, levels =c(&quot;0.05&quot;,&quot;0.01&quot;,&quot;0.005&quot;))) %&gt;% 
+   ggplot(.,aes(x=interaction(qval,type), y = peak_width, fill = interaction(qval,type)))+
+  geom_violin()+
+    # scale_y_continuous(trans = &quot;log&quot;, breaks = c(400, 3000, 22000)) +
+    theme_bw(base_size = 18) +
+    ylab(&quot;Width of Peaks&quot;) +
+    xlab(&quot;&quot;)+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ggtitle(&quot;Master Peak list widths for H3K27ac zoomed in&quot;)+
+  coord_cartesian(ylim=c(0,10000))</code></pre>
+<p><img src="figure/Thresholding.Rmd/peak%20width%20nolambda-2.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="h3k9me3-llocal-and-nolambda" class="section level4">
 <h4>H3K9me3 llocal and nolambda</h4>
@@ -3713,6 +4027,43 @@ peak_count_nolambda_H3K27ac_05 %&gt;%
   theme_bw()+
   theme(axis.text.x=element_text(vjust = .2,angle=90))</code></pre>
 <p><img src="figure/Thresholding.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-1">
+Past versions of unnamed-chunk-8-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-8-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/DXR_project/blob/21e0652c4c2fc84e7c14be36955eea30f787454e/docs/figure/Thresholding.Rmd/unnamed-chunk-8-1.png" target="_blank">21e0652</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-28
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>peak_count_nolambda_H3K9me3_05 &lt;- read_table(&quot;C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K9me3/macs2_nolambda_q05/peak_count_nolambda_q05.txt&quot;, 
     col_names = FALSE) %&gt;% 
   dplyr::filter(X2 != &quot;total&quot;) %&gt;% 
@@ -3764,6 +4115,43 @@ peak_count_nolambda_H3K9me3_05 %&gt;%
   theme(axis.text.x=element_text(vjust = .2,angle=90))+
   ggtitle(&quot;Number of called peaks by file H3K9me3&quot;)</code></pre>
 <p><img src="figure/Thresholding.Rmd/unnamed-chunk-8-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-2">
+Past versions of unnamed-chunk-8-2.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-8-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/DXR_project/blob/21e0652c4c2fc84e7c14be36955eea30f787454e/docs/figure/Thresholding.Rmd/unnamed-chunk-8-2.png" target="_blank">21e0652</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-28
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="h3k27me3-llocal-and-nolambda" class="section level4">
 <h4>H3K27me3 llocal and nolambda</h4>
@@ -3786,6 +4174,43 @@ peak_count_nolambda_H3K9me3_05 %&gt;%
   theme_bw()+
   theme(axis.text.x=element_text(vjust = .2,angle=90))</code></pre>
 <p><img src="figure/Thresholding.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-9-1">
+Past versions of unnamed-chunk-9-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-9-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/DXR_project/blob/21e0652c4c2fc84e7c14be36955eea30f787454e/docs/figure/Thresholding.Rmd/unnamed-chunk-9-1.png" target="_blank">21e0652</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-28
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>peak_count_nolambda_H3K27me3_05 &lt;- read_table(&quot;C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_nolambda_q05/peak_count_nolambda_q05.txt&quot;, 
     col_names = FALSE) %&gt;% 
   dplyr::filter(X2 != &quot;total&quot;) %&gt;% 
@@ -3836,8 +4261,11 @@ peak_count_llocal20k_H3K27me3_01 &lt;- read_table(&quot;C:/Users/renee/Other_pro
 firstPeak_H3K27me3 &lt;- peak_count_H3K27me3_05 %&gt;% 
   rbind(peak_count_H3K27me3_01) %&gt;% 
   # rbind(peak_count_H3K27me3_005) %&gt;% 
+  mutate(X2=gsub(&quot;macs2_peak_q05/&quot;,&quot;&quot;, X2)) %&gt;% 
   mutate(X2=gsub(&quot;macs2_nolambda_q05/&quot;,&quot;&quot;, X2)) %&gt;% 
   mutate(X2=gsub(&quot;macs2_peak_q01/&quot;,&quot;&quot;, X2)) %&gt;% 
+  dplyr::filter(!X2 %in% remove_5fu_list$library_ID) %&gt;%
+  
     # mutate(X2=gsub(&quot;macs2_peak_q005/&quot;,&quot;&quot;, X2)) %&gt;% 
   mutate(qval=factor(qval, levels =c(&quot;0.05&quot;,&quot;0.01&quot;,&quot;0.005&quot;))) %&gt;% 
    group_by(qval) %&gt;% 
@@ -3846,11 +4274,13 @@ firstPeak_H3K27me3 &lt;- peak_count_H3K27me3_05 %&gt;%
 
 
 peak_count_nolambda_H3K27me3_05 %&gt;% 
-  rbind(peak_count_nolambda_H3K27me3_01) %&gt;% 
-  rbind(peak_count_llocal20k_H3K27me3_05) %&gt;% 
-  rbind(peak_count_llocal20k_H3K27me3_01) %&gt;% 
-  rbind(peak_count_nolambda_bcq_H3K27me3_05) %&gt;% 
-   rbind(peak_count_nolambda_bcq_H3K27me3_01) %&gt;%
+  bind_rows(peak_count_llocal20k_H3K27me3_05,
+            peak_count_nolambda_bcq_H3K27me3_05) %&gt;% 
+  # rbind(peak_count_nolambda_H3K27me3_01) %&gt;% 
+  # rbind(peak_count_llocal20k_H3K27me3_05) %&gt;% 
+  # rbind(peak_count_llocal20k_H3K27me3_01) %&gt;% 
+  # rbind(peak_count_nolambda_bcq_H3K27me3_05) %&gt;% 
+  #  rbind(peak_count_nolambda_bcq_H3K27me3_01) %&gt;%
   mutate(X2=gsub(&quot;macs2_nolambda_q05/&quot;,&quot;&quot;, X2)) %&gt;% 
   mutate(X2=gsub(&quot;macs2_nolambda_q01/&quot;,&quot;&quot;, X2))%&gt;% 
   mutate(X2=gsub(&quot;macs2_llocal20k_q01/&quot;,&quot;&quot;, X2)) %&gt;% 
@@ -3864,8 +4294,8 @@ peak_count_nolambda_H3K27me3_05 %&gt;%
   ggplot(., aes(x=X2,y=X1, group = interaction(qval, type) ))+
   geom_point(aes(color= interaction(qval, type) ))+
   geom_path(aes(group = interaction(qval, type), color = interaction(qval, type)), size = 1, linetype = &quot;solid&quot;) +
-  # geom_point(data = firstPeak_H3K27me3, aes(x=X2,y=X1, group = interaction(qval, type)), color = &quot;black&quot;) +      # manual black color for new data
-  # geom_path(data = firstPeak_H3K27me3, aes(x=X2,y=X1, group = interaction(qval, type)), color = &quot;black&quot;, linetype=&quot;dashed&quot;)  +       # manual black color for new data
+  geom_point(data = firstPeak_H3K27me3, aes(x=X2,y=X1, group = interaction(qval, type)), color = &quot;black&quot;) +      # manual black color for new data
+  geom_path(data = firstPeak_H3K27me3, aes(x=X2,y=X1, group = interaction(qval, type)), color = &quot;black&quot;, linetype=&quot;dashed&quot;)  +       # manual black color for new data
   
   geom_hline(aes(yintercept = median_X1, color = interaction(qval, type)), linetype = &quot;dashed&quot;, size = 1) +
   ylab(&quot;Count of total peaks&quot;)+
@@ -3874,6 +4304,127 @@ peak_count_nolambda_H3K27me3_05 %&gt;%
   theme(axis.text.x=element_text(vjust = .2,angle=90))+
   ggtitle(&quot;Number of called peaks by file H3K27me3&quot;)</code></pre>
 <p><img src="figure/Thresholding.Rmd/unnamed-chunk-9-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-9-2">
+Past versions of unnamed-chunk-9-2.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-9-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/DXR_project/blob/21e0652c4c2fc84e7c14be36955eea30f787454e/docs/figure/Thresholding.Rmd/unnamed-chunk-9-2.png" target="_blank">21e0652</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-28
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<pre class="r"><code>H3K27me3_masterpeak_nolambda_05 &lt;- readBed(file=&quot;C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_nolambda_q05/filt_macs2_nolambda_q05_H3k27me3_nobl_all_merged.bed&quot;, remove.unusual = FALSE)
+
+H3K27me3_masterpeak_nolambda_01 &lt;- readBed(file=&quot;C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_nolambda_q01/filt_macs2_nolambda_q01_H3k27me3_nobl_all_merged.bed&quot;, remove.unusual = FALSE)
+
+H3K27ac_masterpeak_llocal20k_05 &lt;- readBed(file=&quot;C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_llocal20k_q05/filt_macs2_llocal20k_q05_H3k27me3_nobl_all_merged.bed&quot;, remove.unusual = FALSE)
+
+H3K27ac_masterpeak_llocal20k_01 &lt;- readBed(file=&quot;C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_llocal20k_q01/filt_macs2_llocal20k_q01_H3k27me3_nobl_all_merged.bed&quot;, remove.unusual = FALSE)
+
+H3K27me3_masterpeak_nolambda_bcq05 &lt;- readBed(file=&quot;C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_nolambda_bcq05/filt_macs2_nolambda_bcq05_H3k27me3_nobl_all_merged.bed&quot;, remove.unusual = FALSE)
+
+H3K27me3_masterpeak_nolambda_bcq01 &lt;- readBed(file=&quot;C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K27me3/macs2_nolambda_bcq01/filt_macs2_nolambda_bcq01_H3k27me3_nobl_all_merged.bed&quot;, remove.unusual = FALSE)
+
+
+master_peak_width_H3K27me3 &lt;-
+  data_frame(peak_width=width(H3K27me3_masterpeak_01),histone=&quot;H3K27me3&quot;,qval=&quot;0.01&quot;,type=&quot;first_run&quot;) %&gt;%
+  rbind(data_frame(peak_width=width(H3K27me3_masterpeak_05),histone=&quot;H3K27me3&quot;,qval=&quot;0.05&quot;,type=&quot;first_run&quot;)) %&gt;%
+  rbind(data_frame(peak_width=width(H3K27ac_masterpeak_005),histone=&quot;H3K27me3&quot;,qval=&quot;0.005&quot;,type=&quot;first_run&quot;)) %&gt;% 
+  rbind(data_frame(peak_width=width(H3K27me3_masterpeak_nolambda_01),histone=&quot;H3K27me3&quot;,qval=&quot;0.01&quot;,type=&quot;nolambda&quot;)) %&gt;%
+  rbind(data_frame(peak_width=width(H3K27me3_masterpeak_nolambda_05),histone=&quot;H3K27me3&quot;,qval=&quot;0.05&quot;,type=&quot;nolambda&quot;)) %&gt;%
+  rbind(data_frame(peak_width=width(H3K27ac_masterpeak_llocal20k_01),histone=&quot;H3K27me3&quot;,qval=&quot;0.01&quot;,type=&quot;llocal20k&quot;)) %&gt;%
+  rbind(data_frame(peak_width=width(H3K27ac_masterpeak_llocal20k_05),histone=&quot;H3K27me3&quot;,qval=&quot;0.05&quot;,type=&quot;llocal20k&quot;)) %&gt;%
+  rbind(data_frame(peak_width=width(H3K27me3_masterpeak_nolambda_bcq01),histone=&quot;H3K27me3&quot;,qval=&quot;0.01&quot;,type=&quot;nolambda_bcq&quot;)) %&gt;%
+  rbind(data_frame(peak_width=width(H3K27me3_masterpeak_nolambda_bcq05),histone=&quot;H3K27me3&quot;,qval=&quot;0.05&quot;,type=&quot;nolambda_bcq&quot;))
+
+master_peak_width_H3K27me3 %&gt;% 
+   mutate(qval=factor(qval, levels =c(&quot;0.05&quot;,&quot;0.01&quot;,&quot;0.005&quot;))) %&gt;% 
+   ggplot(.,aes(x=interaction(qval,type), y = peak_width, fill = interaction(qval,type)))+
+  geom_violin()+
+    # scale_y_continuous(trans = &quot;log&quot;, breaks = c(400, 3000, 22000)) +
+    theme_bw(base_size = 18) +
+    ylab(&quot;Width of Peaks&quot;) +
+    xlab(&quot;&quot;)+
+    theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ggtitle(&quot;Master Peak list widths for H3K27me3&quot;)</code></pre>
+<p><img src="figure/Thresholding.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-10-1">
+Past versions of unnamed-chunk-10-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-10-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/DXR_project/blob/21e0652c4c2fc84e7c14be36955eea30f787454e/docs/figure/Thresholding.Rmd/unnamed-chunk-10-1.png" target="_blank">21e0652</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-28
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<pre class="r"><code>master_peak_width_H3K27me3 %&gt;% 
+   mutate(qval=factor(qval, levels =c(&quot;0.05&quot;,&quot;0.01&quot;,&quot;0.005&quot;))) %&gt;% 
+   ggplot(.,aes(x=interaction(qval,type), y = peak_width, fill = interaction(qval,type)))+
+  geom_violin()+
+    # scale_y_continuous(trans = &quot;log&quot;, breaks = c(400, 3000, 22000)) +
+    theme_bw(base_size = 18) +
+    ylab(&quot;Width of Peaks&quot;) +
+    xlab(&quot;&quot;)+
+    theme(axis.text.x=element_text(vjust = .2,angle=90))+
+  ggtitle(&quot;Master Peak list widths \nfor H3K27me3 zoomed in&quot;)+
+  coord_cartesian(ylim=c(0,10000))</code></pre>
+<p><img src="figure/Thresholding.Rmd/unnamed-chunk-10-2.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="h3k36me3-llocal-and-nolambda" class="section level4">
 <h4>H3K36me3 llocal and nolambda</h4>
@@ -3895,7 +4446,44 @@ peak_count_nolambda_H3K27me3_05 %&gt;%
   # xlab(&quot;samples&quot;)+
   theme_bw()+
   theme(axis.text.x=element_text(vjust = .2,angle=90))</code></pre>
-<p><img src="figure/Thresholding.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/Thresholding.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-11-1">
+Past versions of unnamed-chunk-11-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-11-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/reneeisnowhere/DXR_project/blob/21e0652c4c2fc84e7c14be36955eea30f787454e/docs/figure/Thresholding.Rmd/unnamed-chunk-11-1.png" target="_blank">21e0652</a>
+</td>
+<td>
+reneeisnowhere
+</td>
+<td>
+2025-04-28
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>peak_count_nolambda_H3K36me3_05 &lt;- read_table(&quot;C:/Users/renee/Other_projects_data/DXR_data/prelim-data/H3K36me3/macs2_nolambda_q05/peak_count_nolambda_q05.txt&quot;, 
     col_names = FALSE) %&gt;% 
   dplyr::filter(X2 != &quot;total&quot;) %&gt;% 
@@ -3935,26 +4523,7 @@ peak_count_llocal20k_H3K36me3_01 &lt;- read_table(&quot;C:/Users/renee/Other_pro
    mutate(X2=gsub(&quot;_noM_peaks.broadPeak&quot;,&quot;&quot;,X2)) %&gt;% 
     mutate(histone=&quot;H3K36me3&quot;) %&gt;% 
   mutate(qval=&quot;0.01&quot;)
-peak_count_nolambda_H3K36me3_05</code></pre>
-<pre><code># A tibble: 16 × 4
-       X1 X2                                histone  qval 
-    &lt;dbl&gt; &lt;chr&gt;                             &lt;chr&gt;    &lt;chr&gt;
- 1 360234 macs2_nolambda_q05/MCW_CT_ROA_171 H3K36me3 0.05 
- 2 376201 macs2_nolambda_q05/MCW_CT_ROA_172 H3K36me3 0.05 
- 3 115840 macs2_nolambda_q05/MCW_CT_ROA_174 H3K36me3 0.05 
- 4 151336 macs2_nolambda_q05/MCW_CT_ROA_175 H3K36me3 0.05 
- 5 348299 macs2_nolambda_q05/MCW_CT_ROA_177 H3K36me3 0.05 
- 6 259283 macs2_nolambda_q05/MCW_CT_ROA_180 H3K36me3 0.05 
- 7 265939 macs2_nolambda_q05/MCW_CT_ROA_181 H3K36me3 0.05 
- 8 362141 macs2_nolambda_q05/MCW_CT_ROA_183 H3K36me3 0.05 
- 9 384188 macs2_nolambda_q05/MCW_CT_ROA_189 H3K36me3 0.05 
-10 338593 macs2_nolambda_q05/MCW_CT_ROA_192 H3K36me3 0.05 
-11 399252 macs2_nolambda_q05/MCW_CT_ROA_195 H3K36me3 0.05 
-12 290749 macs2_nolambda_q05/MCW_CT_ROA_202 H3K36me3 0.05 
-13 293162 macs2_nolambda_q05/MCW_CT_ROA_207 H3K36me3 0.05 
-14 287015 macs2_nolambda_q05/MCW_CT_ROA_208 H3K36me3 0.05 
-15 243064 macs2_nolambda_q05/MCW_CT_ROA_210 H3K36me3 0.05 
-16 314605 macs2_nolambda_q05/MCW_CT_ROA_211 H3K36me3 0.05 </code></pre>
+# peak_count_nolambda_H3K36me3_05</code></pre>
 </div>
 <div id="duplication-rates-and-frippeak-calls" class="section level4">
 <h4>Duplication rates and FRiP/peak calls</h4>
@@ -3981,7 +4550,7 @@ combo_trim_df %&gt;%
   ylab(&quot;Percent duplication&quot;)+
   theme_bw()+
   theme(axis.text.x=element_text(vjust = .2,angle=90))</code></pre>
-<p><img src="figure/Thresholding.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/Thresholding.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>combo_trim_df %&gt;% 
   dplyr::filter(trt!=&quot;5FU&quot;&amp;histone_mark==&quot;H3K27me3&quot;) %&gt;% 
   ggplot(., aes(x=interaction(read,prefix),y=`FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
@@ -3991,7 +4560,7 @@ combo_trim_df %&gt;%
   ylab(&quot;Percent duplication&quot;)+
   theme_bw()+
   theme(axis.text.x=element_text(vjust = .2,angle=90))</code></pre>
-<p><img src="figure/Thresholding.Rmd/unnamed-chunk-11-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/Thresholding.Rmd/unnamed-chunk-12-2.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>combo_trim_df %&gt;% 
   dplyr::filter(trt!=&quot;5FU&quot;&amp;histone_mark==&quot;H3K36me3&quot;) %&gt;% 
   ggplot(., aes(x=interaction(read,prefix),y=`FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
@@ -4001,7 +4570,7 @@ combo_trim_df %&gt;%
   ylab(&quot;Percent duplication&quot;)+
   theme_bw()+
   theme(axis.text.x=element_text(vjust = .2,angle=90))</code></pre>
-<p><img src="figure/Thresholding.Rmd/unnamed-chunk-11-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/Thresholding.Rmd/unnamed-chunk-12-3.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>combo_trim_df %&gt;% 
   dplyr::filter(trt!=&quot;5FU&quot;&amp;histone_mark==&quot;H3K9me3&quot;) %&gt;% 
   ggplot(., aes(x=interaction(read,prefix),y=`FastQC_mqc-generalstats-fastqc-percent_duplicates`))+
@@ -4011,7 +4580,7 @@ combo_trim_df %&gt;%
   ylab(&quot;Percent duplication&quot;)+
   theme_bw()+
   theme(axis.text.x=element_text(vjust = .2,angle=90))</code></pre>
-<p><img src="figure/Thresholding.Rmd/unnamed-chunk-11-4.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/Thresholding.Rmd/unnamed-chunk-12-4.png" width="672" style="display: block; margin: auto;" /></p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -4087,28 +4656,27 @@ loaded via a namespace (and not attached):
  [63] generics_0.1.3              gtable_0.3.6               
  [65] BSgenome_1.74.0             tzdb_0.4.0                 
  [67] seqPattern_1.38.0           hms_1.1.3                  
- [69] utf8_1.2.4                  xml2_1.3.7                 
- [71] XVector_0.46.0              ggrepel_0.9.6              
- [73] foreach_1.5.2               pillar_1.10.1              
- [75] vroom_1.6.5                 later_1.4.1                
- [77] circlize_0.4.16             lattice_0.22-6             
- [79] rtracklayer_1.66.0          bit_4.6.0                  
- [81] tidyselect_1.2.1            locfit_1.5-9.12            
- [83] Biostrings_2.74.1           knitr_1.49                 
- [85] git2r_0.35.0                SummarizedExperiment_1.36.0
- [87] svglite_2.1.3               xfun_0.51                  
- [89] Biobase_2.66.0              statmod_1.5.0              
- [91] matrixStats_1.5.0           stringi_1.8.4              
- [93] UCSC.utils_1.2.0            yaml_2.3.10                
- [95] evaluate_1.0.3              codetools_0.2-20           
- [97] cli_3.6.4                   systemfonts_1.2.1          
- [99] munsell_0.5.1               processx_3.8.6             
-[101] jquerylib_0.1.4             Rcpp_1.0.14                
-[103] png_0.1-8                   XML_3.99-0.18              
-[105] parallel_4.4.2              bitops_1.0-9               
-[107] viridisLite_0.4.2           scales_1.3.0               
-[109] crayon_1.5.3                GetoptLong_1.0.5           
-[111] rlang_1.1.5                </code></pre>
+ [69] xml2_1.3.7                  XVector_0.46.0             
+ [71] ggrepel_0.9.6               foreach_1.5.2              
+ [73] pillar_1.10.1               vroom_1.6.5                
+ [75] later_1.4.1                 circlize_0.4.16            
+ [77] lattice_0.22-6              rtracklayer_1.66.0         
+ [79] bit_4.6.0                   tidyselect_1.2.1           
+ [81] locfit_1.5-9.12             Biostrings_2.74.1          
+ [83] knitr_1.49                  git2r_0.35.0               
+ [85] SummarizedExperiment_1.36.0 svglite_2.1.3              
+ [87] xfun_0.51                   Biobase_2.66.0             
+ [89] statmod_1.5.0               matrixStats_1.5.0          
+ [91] stringi_1.8.4               UCSC.utils_1.2.0           
+ [93] yaml_2.3.10                 evaluate_1.0.3             
+ [95] codetools_0.2-20            cli_3.6.4                  
+ [97] systemfonts_1.2.1           munsell_0.5.1              
+ [99] processx_3.8.6              jquerylib_0.1.4            
+[101] Rcpp_1.0.14                 png_0.1-8                  
+[103] XML_3.99-0.18               parallel_4.4.2             
+[105] bitops_1.0-9                viridisLite_0.4.2          
+[107] scales_1.3.0                crayon_1.5.3               
+[109] GetoptLong_1.0.5            rlang_1.1.5                </code></pre>
 </div>
 </div>
 </div>
